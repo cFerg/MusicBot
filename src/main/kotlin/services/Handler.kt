@@ -21,8 +21,6 @@ class Handler : AudioEventAdapter() {
     private val boxMessage: AtomicReference<Message>? = null
     private val creatingBoxMessage: AtomicBoolean? = null
 
-    //channel.sendMessage.queue()
-
     fun queue(track:AudioTrack){
         queue?.addLast(track)
         startNextTrack(true)
@@ -75,8 +73,7 @@ class Handler : AudioEventAdapter() {
         // endReason == LOAD_FAILED: Loading of a track failed (mayStartNext = true).
         // endReason == STOPPED: The player was stopped.
         // endReason == REPLACED: Another track started playing while this had not finished
-        // endReason == CLEANUP: Player hasn't been queried for a while, if you want you can put a
-        //                       clone of this back to your queue
+        // endReason == CLEANUP: Player hasn't been queried for a while, if you want you can put a clone of this back to your queue
     }
 
     override fun onTrackException(player:AudioPlayer, track:AudioTrack, exception: FriendlyException) {

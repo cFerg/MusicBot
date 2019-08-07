@@ -13,14 +13,8 @@ class Main {
     var handler: Handler
 
     init {
-        //Music Related
-        //=======================================================================
-
-        //for remote tracks ie) urls
         AudioSourceManagers.registerRemoteSources(playerManager)
-
-        //for local tracks from disk - might use for presets
-        //AudioSourceManagers.registerLocalSource(playerManager)
+        AudioSourceManagers.registerLocalSource(playerManager)
 
         player = playerManager.createPlayer()
 
@@ -31,8 +25,6 @@ class Main {
 }
 
 fun main(Args: Array<String>) {
-    //Bot Related
-    //=======================================================================
     val token = Args.first()
 
     startBot(token) {

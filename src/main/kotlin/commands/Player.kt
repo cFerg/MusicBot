@@ -1,7 +1,6 @@
 package commands
 
 import com.sedmelluq.discord.lavaplayer.player.AudioLoadResultHandler
-import com.sedmelluq.discord.lavaplayer.player.event.AudioEventListener
 import com.sedmelluq.discord.lavaplayer.tools.FriendlyException
 import com.sedmelluq.discord.lavaplayer.track.AudioPlaylist
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack
@@ -14,16 +13,15 @@ import net.dv8tion.jda.core.entities.VoiceChannel
 import net.dv8tion.jda.core.managers.AudioManager
 import plugin
 import services.AudioPlayerSendHandler
-import java.lang.Compiler.command
 
+//TODO move sending handler, voice channel, audio manager, and initial connector out of the commands, but in an initializer
 @CommandSet("player")
 fun playCommand() = commands {
     command("play") {
-        description = "Play the song listed - if a song is already playing, it's added to a queue."
+        description = "Play the song listed - If a song is already playing, it's added to a queue."
         expect(arg(UrlArg))
         execute {
             val url = it.args.component1() as String
-            it.respond("successfully added the song from <$url>")
             val vc: VoiceChannel = it.author.toMember(it.guild!!).voiceState.channel
             val am: AudioManager = it.guild!!.audioManager
             am.sendingHandler = AudioPlayerSendHandler(plugin.player)
@@ -31,6 +29,7 @@ fun playCommand() = commands {
 
             plugin.playerManager.loadItem(url, object : AudioLoadResultHandler {
                 override fun trackLoaded(track: AudioTrack) {
+                    it.respond("Successfully loaded the track.")
                     plugin.handler.queue(track)
                     plugin.player.playTrack(track)
                 }
@@ -41,13 +40,9 @@ fun playCommand() = commands {
                     }
                 }
 
-                override fun noMatches() {
-                    // Notify the user that we've got nothing
-                }
+                override fun noMatches() = it.respond("No matching song found")
 
-                override fun loadFailed(throwable: FriendlyException) {
-                    // Notify the user that everything exploded
-                }
+                override fun loadFailed(throwable: FriendlyException) = it.respond("Error, could not load track.")
             })
         }
     }

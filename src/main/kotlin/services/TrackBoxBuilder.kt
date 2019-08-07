@@ -5,15 +5,16 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
 
+//TODO replace with embeds
 object TrackBoxBuilder {
-    private val TOP_LEFT_CORNER = "\u2554"
-    private val TOP_RIGHT_CORNER = "\u2557"
-    private val BOTTOM_LEFT_CORNER = "\u255a"
-    private val BOTTOM_RIGHT_CORNER = "\u255d"
-    private val BORDER_HORIZONTAL = "\u2550"
-    private val BORDER_VERTICAL = "\u2551"
-    private val PROGRESS_FILL = "\u25a0"
-    private val PROGRESS_EMPTY = "\u2015"
+    private const val TOP_LEFT_CORNER = "\u2554"
+    private const val TOP_RIGHT_CORNER = "\u2557"
+    private const val BOTTOM_LEFT_CORNER = "\u255a"
+    private const val BOTTOM_RIGHT_CORNER = "\u255d"
+    private const val BORDER_HORIZONTAL = "\u2550"
+    private const val BORDER_VERTICAL = "\u2551"
+    private const val PROGRESS_FILL = "\u25a0"
+    private const val PROGRESS_EMPTY = "\u2015"
 
     fun buildTrackBox(width: Int, track: AudioTrack, isPaused: Boolean, volume: Int): String {
         return boxify(width, buildFirstLine(width - 4, track), buildSecondLine(width - 4, track, isPaused, volume))
@@ -36,15 +37,12 @@ object TrackBoxBuilder {
 
     private fun buildSecondLine(width: Int, track: AudioTrack, isPaused: Boolean, volume: Int): String {
         val cornerText = if (isPaused) "PAUSED" else "$volume%"
-
         val duration = formatTiming(track.duration, track.duration)
         val position = formatTiming(track.position, track.duration)
         val spacing = duration.length - position.length
         val barLength = width - duration.length - position.length - spacing - 14
-
         val progress = min(track.position, track.duration).toFloat() / max(track.duration, 1).toFloat()
         val progressBlocks = (progress * barLength).roundToInt()
-
         val builder = StringBuilder()
 
         for (i in 0 until 6 - cornerText.length) {
@@ -52,11 +50,12 @@ object TrackBoxBuilder {
         }
 
         builder.append(cornerText)
-
         builder.append(" [")
+
         for (i in 0 until barLength) {
             builder.append(if (i < progressBlocks) PROGRESS_FILL else PROGRESS_EMPTY)
         }
+
         builder.append("]")
 
         for (i in 0 until spacing + 1) {
@@ -66,7 +65,6 @@ object TrackBoxBuilder {
         builder.append(position)
         builder.append(" of ")
         builder.append(duration)
-
         builder.append(" ")
         builder.append(TOP_RIGHT_CORNER)
 
@@ -76,7 +74,6 @@ object TrackBoxBuilder {
     private fun formatTiming(timing: Long, maximum: Long): String {
         var timing = timing
         timing = min(timing, maximum) / 1000
-
         val seconds = timing % 60
         timing /= 60
         val minutes = timing % 60
@@ -102,18 +99,22 @@ object TrackBoxBuilder {
 
         builder.append("```")
         builder.append(TOP_LEFT_CORNER)
+
         for (i in 0 until width - 1) {
             builder.append(BORDER_HORIZONTAL)
         }
+
         builder.append("\n")
 
         boxifyLine(builder, firstLine)
         boxifyLine(builder, secondLine)
 
         builder.append(BOTTOM_LEFT_CORNER)
+
         for (i in 0 until width - 2) {
             builder.append(BORDER_HORIZONTAL)
         }
+
         builder.append(BOTTOM_RIGHT_CORNER)
         builder.append("```")
 
