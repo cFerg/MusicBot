@@ -20,8 +20,8 @@
         </dependency>
         <dependency>
             <groupId>com.gitlab.aberrantfox</groupId>
-            <artifactId>Kutils</artifactId>
-            <version>0.9.17</version>
+            <artifactId>KUtils</artifactId>
+            <version>0.10.0</version>
         </dependency>
         <dependency>
             <groupId>com.sedmelluq</groupId>

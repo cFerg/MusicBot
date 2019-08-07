@@ -1,7 +1,7 @@
 package services
 
+import net.dv8tion.jda.api.entities.Message
 import java.util.function.Consumer
-import net.dv8tion.jda.core.entities.Message
 
 //TODO delete
 interface MessageDispatcher {

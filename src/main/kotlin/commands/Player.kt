@@ -9,8 +9,8 @@ import me.aberrantfox.kjdautils.api.dsl.arg
 import me.aberrantfox.kjdautils.api.dsl.commands
 import me.aberrantfox.kjdautils.extensions.jda.toMember
 import me.aberrantfox.kjdautils.internal.command.arguments.UrlArg
-import net.dv8tion.jda.core.entities.VoiceChannel
-import net.dv8tion.jda.core.managers.AudioManager
+import net.dv8tion.jda.api.entities.VoiceChannel
+import net.dv8tion.jda.api.managers.AudioManager
 import plugin
 import services.AudioPlayerSendHandler
 
@@ -22,7 +22,7 @@ fun playCommand() = commands {
         expect(arg(UrlArg))
         execute {
             val url = it.args.component1() as String
-            val vc: VoiceChannel = it.author.toMember(it.guild!!).voiceState.channel
+            val vc: VoiceChannel = it.author.toMember(it.guild!!)!!.voiceState!!.channel!!
             val am: AudioManager = it.guild!!.audioManager
             am.sendingHandler = AudioPlayerSendHandler(plugin.player)
             am.openAudioConnection(vc)

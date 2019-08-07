@@ -5,11 +5,11 @@ import com.sedmelluq.discord.lavaplayer.player.event.AudioEventAdapter
 import com.sedmelluq.discord.lavaplayer.tools.FriendlyException
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackEndReason
+import net.dv8tion.jda.api.entities.Message
 import plugin
 import java.util.concurrent.BlockingDeque
 import java.util.ArrayList
 import java.util.concurrent.atomic.AtomicBoolean
-import net.dv8tion.jda.core.entities.Message
 import java.util.concurrent.atomic.AtomicReference
 import java.util.concurrent.ScheduledExecutorService
 
