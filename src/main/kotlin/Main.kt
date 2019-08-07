@@ -30,10 +30,10 @@ class Main {
     }
 }
 
-fun main() {
+fun main(Args: Array<String>) {
     //Bot Related
     //=======================================================================
-    val token = "NjA2NjYwOTYwNTM0NTI4MDEx.XUOTcw.DSVfznq1qfX01BFu8nWfDxqRUug"
+    val token = Args.first()
 
     startBot(token) {
         configure {
