@@ -2,10 +2,14 @@ import com.sedmelluq.discord.lavaplayer.player.AudioPlayer
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager
 import com.sedmelluq.discord.lavaplayer.player.DefaultAudioPlayerManager
 import com.sedmelluq.discord.lavaplayer.source.AudioSourceManagers
+import me.aberrantfox.kjdautils.api.KUtils
 import me.aberrantfox.kjdautils.api.startBot
 import services.Handler
+import services.RichPresence
 
 var plugin = Main()
+var disc: KUtils? = null
+var token:String = ""
 
 class Main {
     var playerManager: AudioPlayerManager = DefaultAudioPlayerManager()
@@ -25,11 +29,13 @@ class Main {
 }
 
 fun main(Args: Array<String>) {
-    val token = Args.first()
+    token = Args.first()
 
-    startBot(token) {
+    disc = startBot(token) {
         configure {
             prefix = "$"
         }
     }
+
+    //RichPresence()
 }
