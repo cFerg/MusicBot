@@ -8,13 +8,13 @@ MusicBot is a simple bot for playing music and streams within discord servers.
     <img src="https://img.shields.io/badge/Kotlin-1.3.41-blue.svg" alt="Kotlin 1.3.41">
   </a>
   <a href="https://gitlab.com/Aberrantfox/KUtils">
-    <img src="https://img.shields.io/badge/KUtils-0.10.0-blue.svg" alt="KUtils 0.10.0">
+    <img src="https://img.shields.io/badge/KUtils-0.10.0-blueviolet.svg" alt="KUtils 0.10.0">
   </a>
-  <a href="https://GitHub.com/CFerg/MusicBot/releases/">
-    <img src="https://img.shields.io/github/release/CFerg/MusicBot.svg" alt="Release">
+  <a href="https://github.com/cFerg/MusicBot/releases/">
+    <img src="https://img.shields.io/github/release/cFerg/MusicBot.svg" alt="Release">
   </a>
   <a href="LICENSE.md">
-    <img src="https://img.shields.io/github/license/CFerg/MusicBot.svg" alt="License">
+    <img src="https://img.shields.io/github/license/cFerg/MusicBot.svg" alt="License">
   </a>
 </p>
 <p align="center">
@@ -22,7 +22,7 @@ MusicBot is a simple bot for playing music and streams within discord servers.
     <img src="https://img.shields.io/discord/453208597082406912?logo=discord" alt="Follow the KUtils Project">
   </a>
   <a href="https://discordapp.com/users/167417801873555456/">
-    <img src="https://img.shields.io/badge/Discord-Elite%230001-lightgrey.svg" alt="Discord Elite#0001">
+    <img src="https://img.shields.io/badge/Discord-Elite%230001-9cf.svg" alt="Discord Elite#0001">
   </a>
 </p>
 <p align="center">
