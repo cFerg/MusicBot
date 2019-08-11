@@ -9,13 +9,14 @@ import me.aberrantfox.kjdautils.api.dsl.arg
 import me.aberrantfox.kjdautils.api.dsl.commands
 import me.aberrantfox.kjdautils.extensions.jda.toMember
 import me.aberrantfox.kjdautils.internal.command.arguments.UrlArg
+import me.aberrantfox.kjdautils.internal.command.arguments.VoiceChannelArg
+import net.dv8tion.jda.api.entities.VoiceChannel
 import net.dv8tion.jda.api.managers.AudioManager
-import plugin
 import services.AudioPlayerSendHandler
-import services.LongArg
+import services.ManagerService
 
 @CommandSet("Player")
-fun playerCommands() = commands {
+fun playerCommands(plugin: ManagerService) = commands {
     command("Play") {
         description = "Play the song listed - If a song is already playing, it's added to a queue."
         requiresGuild = true
@@ -55,24 +56,16 @@ fun playerCommands() = commands {
     command("Move") {
         description = "Move bot to the current voice channel or to a specified voice channel via ID."
         requiresGuild = true
-        expect(arg(LongArg, true) {
-            val channel = it.author.toMember(it.guild!!)?.voiceState?.channel
-            channel?.idLong ?: "NoVoice"
-        })
+        expect(arg(VoiceChannelArg, true) { it.author.toMember(it.guild!!)?.voiceState?.channel ?: Unit })
         execute {
-            if (it.args.component1() == "NoVoice") {
-                it.respond("Sorry, you need to either be in a channel or specify a valid channel ID")
-            } else {
-                val channel = it.guild!!.getVoiceChannelById(it.args.component1() as Long)
-
-                if (channel == null) {
-                    it.respond("The provided ID is not valid.")
-                } else {
-                    val am: AudioManager = it.guild!!.audioManager
-                    am.sendingHandler = AudioPlayerSendHandler(plugin.player)
-                    am.openAudioConnection(channel)
-                }
+            if (it.args.component1() is Unit) {
+                return@execute it.respond("Sorry, you need to either be in a channel or specify a valid channel ID")
             }
+
+            val channel = it.args.component1() as VoiceChannel
+            val manager = it.guild!!.audioManager
+            manager.sendingHandler = AudioPlayerSendHandler(plugin.player)
+            manager.openAudioConnection(channel)
         }
     }
 }

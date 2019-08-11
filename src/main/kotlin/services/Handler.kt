@@ -5,18 +5,15 @@ import com.sedmelluq.discord.lavaplayer.player.event.AudioEventAdapter
 import com.sedmelluq.discord.lavaplayer.tools.FriendlyException
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackEndReason
+import me.aberrantfox.kjdautils.api.annotation.Service
 import net.dv8tion.jda.api.entities.Message
-import plugin
 import java.util.concurrent.BlockingDeque
 import java.util.ArrayList
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicReference
-import java.util.concurrent.ScheduledExecutorService
 
-class Handler : AudioEventAdapter() {
-    private val player: AudioPlayer? = null
-    private val messageDispatcher: MessageDispatcher? = null
-    private val executorService: ScheduledExecutorService? = null
+@Service
+class Handler(private val plugin:ManagerService) : AudioEventAdapter() {
     private val queue: BlockingDeque<AudioTrack>? = null
     private val boxMessage: AtomicReference<Message>? = null
     private val creatingBoxMessage: AtomicBoolean? = null
@@ -49,17 +46,14 @@ class Handler : AudioEventAdapter() {
     }
 
     override fun onPlayerPause(player:AudioPlayer) {
-        updateTrackBox(false)
         // Player was paused
     }
 
     override fun onPlayerResume(player:AudioPlayer) {
-        updateTrackBox(false)
         // Player was resumed
     }
 
     override fun onTrackStart(player:AudioPlayer, track:AudioTrack) {
-        updateTrackBox(true)
         // A track started playing
     }
 
@@ -100,7 +94,7 @@ class Handler : AudioEventAdapter() {
                 message.editMessage(box).queue()
             } else {
                 if (creatingBoxMessage?.compareAndSet(false, true)!!) {
-                    messageDispatcher?.sendMessage(box)
+                    //messageDispatcher?.sendMessage(box)
                 }
             }
         }

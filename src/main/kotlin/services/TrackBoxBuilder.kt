@@ -21,18 +21,17 @@ object TrackBoxBuilder {
     }
 
     private fun buildFirstLine(width: Int, track: AudioTrack): String {
-        val builder = StringBuilder()
         val title = track.info.title
         val titleWidth = width - 7
 
-        if (title.length > titleWidth) {
-            builder.append(title.substring(0, titleWidth - 3))
-            builder.append("...")
-        } else {
-            builder.append(title)
+        return buildString{
+            if (title.length > titleWidth) {
+                append(title.substring(0, titleWidth - 3))
+                append("...")
+            } else {
+                append(title)
+            }
         }
-
-        return builder.toString()
     }
 
     private fun buildSecondLine(width: Int, track: AudioTrack, isPaused: Boolean, volume: Int): String {
@@ -43,32 +42,26 @@ object TrackBoxBuilder {
         val barLength = width - duration.length - position.length - spacing - 14
         val progress = min(track.position, track.duration).toFloat() / max(track.duration, 1).toFloat()
         val progressBlocks = (progress * barLength).roundToInt()
-        val builder = StringBuilder()
 
-        for (i in 0 until 6 - cornerText.length) {
-            builder.append(" ")
+        return buildString {
+            for (i in 0 until 6 - cornerText.length) {
+                append(" ")
+            }
+
+            append("$cornerText [")
+
+            for (i in 0 until barLength) {
+                append(if (i < progressBlocks) PROGRESS_FILL else PROGRESS_EMPTY)
+            }
+
+            append("]")
+
+            for (i in 0 until spacing + 1) {
+                append(" ")
+            }
+
+            append("$position of $duration $TOP_RIGHT_CORNER")
         }
-
-        builder.append(cornerText)
-        builder.append(" [")
-
-        for (i in 0 until barLength) {
-            builder.append(if (i < progressBlocks) PROGRESS_FILL else PROGRESS_EMPTY)
-        }
-
-        builder.append("]")
-
-        for (i in 0 until spacing + 1) {
-            builder.append(" ")
-        }
-
-        builder.append(position)
-        builder.append(" of ")
-        builder.append(duration)
-        builder.append(" ")
-        builder.append(TOP_RIGHT_CORNER)
-
-        return builder.toString()
     }
 
     private fun formatTiming(timing: Long, maximum: Long): String {
@@ -87,37 +80,26 @@ object TrackBoxBuilder {
         }
     }
 
-    private fun boxifyLine(builder: StringBuilder, line: String) {
-        builder.append(BORDER_VERTICAL)
-        builder.append(" ")
-        builder.append(line)
-        builder.append("\n")
-    }
+    private fun boxifyLine(builder: StringBuilder, line: String) = builder.append("$BORDER_VERTICAL $line\n")
 
-    private fun boxify(width: Int, firstLine: String, secondLine: String): String {
-        val builder = StringBuilder()
-
-        builder.append("```")
-        builder.append(TOP_LEFT_CORNER)
+    private fun boxify(width: Int, firstLine: String, secondLine: String) = buildString {
+        append("```$TOP_LEFT_CORNER")
 
         for (i in 0 until width - 1) {
-            builder.append(BORDER_HORIZONTAL)
+            append(BORDER_HORIZONTAL)
         }
 
-        builder.append("\n")
+        appendln()
 
-        boxifyLine(builder, firstLine)
-        boxifyLine(builder, secondLine)
+        boxifyLine(this, firstLine)
+        boxifyLine(this, secondLine)
 
-        builder.append(BOTTOM_LEFT_CORNER)
+        append(BOTTOM_LEFT_CORNER)
 
         for (i in 0 until width - 2) {
-            builder.append(BORDER_HORIZONTAL)
+            append(BORDER_HORIZONTAL)
         }
 
-        builder.append(BOTTOM_RIGHT_CORNER)
-        builder.append("```")
-
-        return builder.toString()
+        append("$BOTTOM_RIGHT_CORNER```")
     }
 }
