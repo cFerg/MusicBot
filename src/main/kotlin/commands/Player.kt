@@ -8,9 +8,9 @@ import me.aberrantfox.kjdautils.api.dsl.CommandSet
 import me.aberrantfox.kjdautils.api.dsl.arg
 import me.aberrantfox.kjdautils.api.dsl.commands
 import me.aberrantfox.kjdautils.extensions.jda.toMember
-import me.aberrantfox.kjdautils.internal.command.arguments.IntegerRangeArg
-import me.aberrantfox.kjdautils.internal.command.arguments.UrlArg
-import me.aberrantfox.kjdautils.internal.command.arguments.VoiceChannelArg
+import me.aberrantfox.kjdautils.internal.arguments.IntegerRangeArg
+import me.aberrantfox.kjdautils.internal.arguments.UrlArg
+import me.aberrantfox.kjdautils.internal.arguments.VoiceChannelArg
 import net.dv8tion.jda.api.entities.VoiceChannel
 import net.dv8tion.jda.api.managers.AudioManager
 import services.AudioPlayerSendHandler

@@ -6,12 +6,8 @@ import com.sedmelluq.discord.lavaplayer.tools.FriendlyException
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackEndReason
 import me.aberrantfox.kjdautils.api.annotation.Service
-import net.dv8tion.jda.api.entities.Message
+import java.util.*
 import java.util.concurrent.BlockingDeque
-import java.util.ArrayList
-import java.util.concurrent.LinkedBlockingQueue
-import java.util.concurrent.atomic.AtomicBoolean
-import java.util.concurrent.atomic.AtomicReference
 
 //TODO fix queueing - not storing next songs currently - might convert to List instead of BlockingDeque
 
