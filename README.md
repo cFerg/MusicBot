@@ -26,7 +26,7 @@ MusicBot is a simple bot for playing music and streams within discord servers.
   </a>
 </p>
 <p align="center">
-  <img src="https://i.imgur.com/S5EZ3l0.png" width="256">
+  <img src="https://i.imgur.com/MKLAMIb.png" width="256">
 </p>
 <div align="center">
 
