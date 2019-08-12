@@ -9,24 +9,32 @@ import me.aberrantfox.kjdautils.api.annotation.Service
 import net.dv8tion.jda.api.entities.Message
 import java.util.concurrent.BlockingDeque
 import java.util.ArrayList
+import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicReference
+
+//TODO fix queueing - not storing next songs currently - might convert to List instead of BlockingDeque
 
 @Service
 class Handler(private val plugin:ManagerService) : AudioEventAdapter() {
     private val queue: BlockingDeque<AudioTrack>? = null
-    private val boxMessage: AtomicReference<Message>? = null
-    private val creatingBoxMessage: AtomicBoolean? = null
+
+    fun isQueueEmpty():Boolean = queue.isNullOrEmpty()
 
     fun queue(track:AudioTrack){
-        queue?.addLast(track)
-        startNextTrack(true)
+        if (!plugin.player.startTrack(track, true)) {
+            queue?.offer(track)
+        }
     }
 
     fun clearQueue(): List<AudioTrack> {
         val clearQueue = ArrayList<AudioTrack>()
         queue?.drainTo(clearQueue)
         return clearQueue
+    }
+
+    fun skip(){
+        plugin.player.startTrack(queue?.poll(), false)
     }
 
     private fun startNextTrack(noInterrupt: Boolean) {
@@ -39,10 +47,6 @@ class Handler(private val plugin:ManagerService) : AudioEventAdapter() {
         } else {
             plugin.player.stopTrack()
         }
-    }
-
-    fun skip(){
-        startNextTrack(false)
     }
 
     override fun onPlayerPause(player:AudioPlayer) {
@@ -58,9 +62,8 @@ class Handler(private val plugin:ManagerService) : AudioEventAdapter() {
     }
 
     override fun onTrackEnd(player:AudioPlayer, track:AudioTrack, endReason: AudioTrackEndReason) {
-        if (endReason.mayStartNext) {
+        if (endReason.mayStartNext || endReason == AudioTrackEndReason.FINISHED) {
             startNextTrack(true)
-            // Start next track
         }
 
         // endReason == FINISHED: A track finished or died by an exception (mayStartNext = true).
@@ -77,26 +80,5 @@ class Handler(private val plugin:ManagerService) : AudioEventAdapter() {
     override fun onTrackStuck(player:AudioPlayer, track:AudioTrack, thresholdMs:Long) {
         startNextTrack(false)
         // Audio track has been unable to provide us any audio, might want to just start a new track
-    }
-
-    private fun updateTrackBox(newMessage: Boolean) {
-        val track = plugin.player.playingTrack
-
-        if (track == null || newMessage) {
-            boxMessage?.getAndSet(null)?.delete()
-        }
-
-        if (track != null) {
-            val message = boxMessage?.get()
-            val box = TrackBoxBuilder.buildTrackBox(80, track, plugin.player.isPaused, plugin.player.volume)
-
-            if (message != null) {
-                message.editMessage(box).queue()
-            } else {
-                if (creatingBoxMessage?.compareAndSet(false, true)!!) {
-                    //messageDispatcher?.sendMessage(box)
-                }
-            }
-        }
     }
 }
