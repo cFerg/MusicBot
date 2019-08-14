@@ -5,6 +5,7 @@ import com.sedmelluq.discord.lavaplayer.player.event.AudioEventAdapter
 import com.sedmelluq.discord.lavaplayer.tools.FriendlyException
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackEndReason
+import data.currentChannel
 import me.aberrantfox.kjdautils.api.annotation.Service
 import java.util.concurrent.LinkedBlockingDeque
 import java.util.concurrent.BlockingQueue
@@ -24,6 +25,7 @@ class Handler(private val plugin:ManagerService) : AudioEventAdapter() {
     fun clearQueue() = queue.clear()
 
     fun skip(){
+        currentChannel?.sendMessage("${plugin.player.playingTrack.info.title} has been skipped!")
         plugin.player.startTrack(queue.poll(), false)
     }
 
@@ -33,10 +35,10 @@ class Handler(private val plugin:ManagerService) : AudioEventAdapter() {
         if (next != null) {
             if (!plugin.player.startTrack(next, noInterrupt)) {
                 queue.add(next)
-                println("Song added")
+                currentChannel?.sendMessage("${next.info.title} by ${next.info.author} has started playing!")
             }else{
                 queue.put(next)
-                println("Song put")
+                currentChannel?.sendMessage("${next.info.title} by ${next.info.author} has started playing!")
             }
         } else {
             plugin.player.stopTrack()
@@ -44,37 +46,29 @@ class Handler(private val plugin:ManagerService) : AudioEventAdapter() {
     }
 
     override fun onPlayerPause(player:AudioPlayer) {
-        // Player was paused
+        currentChannel?.sendMessage("${player.playingTrack.info.title} is now paused.")
     }
 
     override fun onPlayerResume(player:AudioPlayer) {
-        // Player was resumed
+        currentChannel?.sendMessage("${player.playingTrack.info.title} resumed playing.")
     }
 
     override fun onTrackStart(player:AudioPlayer, track:AudioTrack) {
-        // A track started playing
-        //TODO add a config file, and store and pull associated text channel
-        println("${track.info.title} started playing")
+        currentChannel?.sendMessage("${track.info.title} started playing.")
     }
 
     override fun onTrackEnd(player:AudioPlayer, track:AudioTrack, endReason: AudioTrackEndReason) {
         if (endReason.mayStartNext || endReason == AudioTrackEndReason.FINISHED) {
             startNextTrack(true)
         }
-
-        // endReason == FINISHED: A track finished or died by an exception (mayStartNext = true).
-        // endReason == LOAD_FAILED: Loading of a track failed (mayStartNext = true).
-        // endReason == STOPPED: The player was stopped.
-        // endReason == REPLACED: Another track started playing while this had not finished
-        // endReason == CLEANUP: Player hasn't been queried for a while, if you want you can put a clone of this back to your queue
     }
 
     override fun onTrackException(player:AudioPlayer, track:AudioTrack, exception: FriendlyException) {
-        // An already playing track threw an exception (track end event will still be received separately)
+        currentChannel?.sendMessage("\\!\\!\\! Error Occurred - Please Let Staff Know \\!\\!\\!")
     }
 
     override fun onTrackStuck(player:AudioPlayer, track:AudioTrack, thresholdMs:Long) {
+        currentChannel?.sendMessage("${track.info.title} is stuck - Skipping the song!")
         startNextTrack(false)
-        // Audio track has been unable to provide us any audio, might want to just start a new track
     }
 }

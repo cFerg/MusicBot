@@ -4,6 +4,9 @@ import com.sedmelluq.discord.lavaplayer.player.AudioLoadResultHandler
 import com.sedmelluq.discord.lavaplayer.tools.FriendlyException
 import com.sedmelluq.discord.lavaplayer.track.AudioPlaylist
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack
+import data.Channels
+import data.currentChannel
+import data.currentVoice
 import me.aberrantfox.kjdautils.api.dsl.CommandSet
 import me.aberrantfox.kjdautils.api.dsl.arg
 import me.aberrantfox.kjdautils.api.dsl.commands
@@ -17,23 +20,29 @@ import services.AudioPlayerSendHandler
 import services.ManagerService
 
 @CommandSet("Player")
-fun playerCommands(plugin: ManagerService) = commands {
+fun playerCommands(plugin: ManagerService, channels: Channels) = commands {
     command("Play") {
         description = "Play the song listed - If a song is already playing, it's added to a queue."
         requiresGuild = true
         expect(arg(UrlArg))
         execute {
             val url = it.args.component1() as String
-            var vc = it.author.toMember(it.guild!!)?.voiceState?.channel
 
-            //TODO change backup vc from first to configurable list
-            if (vc == null) {
-                vc = it.guild!!.voiceChannels[0]
+            if (currentVoice == null){
+                if (currentChannel == null){
+                    currentVoice = it.guild!!.getVoiceChannelById(channels.getVoiceChannel(it.channel.id))
+                    currentChannel = it.guild!!.getTextChannelById(channels.getTextChannel(currentVoice!!.id))
+                }else{
+                    currentVoice = it.guild!!.getVoiceChannelById(channels.getVoiceChannel(currentChannel!!.id))
+                }
+            }else if(currentVoice!!.id != channels.getVoiceChannel(it.channel.id)){
+                currentVoice = it.guild!!.getVoiceChannelById(channels.getVoiceChannel(it.channel.id))
+                currentChannel = it.guild!!.getTextChannelById(channels.getTextChannel(currentVoice!!.id))
             }
 
             val am: AudioManager = it.guild!!.audioManager
-            am.sendingHandler = AudioPlayerSendHandler(plugin.player) //TODO might could set outside of method
-            am.openAudioConnection(vc)
+            am.sendingHandler = AudioPlayerSendHandler(plugin.player)
+            am.openAudioConnection(currentVoice)
 
             plugin.playerManager.loadItem(url, object : AudioLoadResultHandler {
                 override fun trackLoaded(track: AudioTrack) {
@@ -58,7 +67,7 @@ fun playerCommands(plugin: ManagerService) = commands {
     command("Move") {
         description = "Move bot to the current voice channel or to a specified voice channel via ID."
         requiresGuild = true
-        expect(arg(VoiceChannelArg, true) { it.author.toMember(it.guild!!)?.voiceState?.channel ?: Unit })
+        expect(arg(VoiceChannelArg, true) { channels.getVoiceChannel(it.channel.id) })
         execute {
             if (it.args.component1() is Unit) {
                 return@execute it.respond("Sorry, you need to either be in a channel or specify a valid channel ID")
@@ -68,6 +77,9 @@ fun playerCommands(plugin: ManagerService) = commands {
             val manager = it.guild!!.audioManager
             manager.sendingHandler = AudioPlayerSendHandler(plugin.player)
             manager.openAudioConnection(channel)
+
+            currentVoice = channel
+            currentChannel = it.guild!!.getTextChannelById(channels.getTextChannel(currentVoice!!.id))
         }
     }
 
@@ -78,6 +90,9 @@ fun playerCommands(plugin: ManagerService) = commands {
             val manager = it.guild!!.audioManager
             plugin.player.stopTrack()
             manager.closeAudioConnection()
+
+            currentVoice = null
+            currentChannel = null
         }
     }
 

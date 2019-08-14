@@ -1,7 +1,8 @@
 package data
 
 import me.aberrantfox.kjdautils.api.annotation.Data
-import me.aberrantfox.kjdautils.internal.arguments.VoiceChannelArg
+import net.dv8tion.jda.api.entities.TextChannel
+import net.dv8tion.jda.api.entities.VoiceChannel
 
 @Data("config/channels.json")
 data class Channels(var channelPairings: MutableList<ChannelPair> = mutableListOf(ChannelPair())){
@@ -16,4 +17,5 @@ data class Channels(var channelPairings: MutableList<ChannelPair> = mutableListO
 
 data class ChannelPair(var voiceID: String = "insert-voice-ID", var channelID: String = "insert-channel-ID")
 
-val currentVoice: VoiceChannelArg? = null
+var currentVoice: VoiceChannel? = null
+var currentChannel: TextChannel? = null
