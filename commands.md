@@ -20,9 +20,15 @@
 | Unmute     | <none>                               | Sets bot's volume back to previous level before it was muted.                 |
 | Volume     | Integer (0-100)                      | Adjust volume from range 0-100                                                |
 
+## Utility
+| Commands | Arguments | Description                                |
+| -------- | --------- | ------------------------------------------ |
+| BotInfo  | <none>    | Displays the bot information.              |
+| Ping     | <none>    | Displays network ping of the bot!          |
+| Source   | <none>    | Display the (source code) repository link. |
+
 ## utility
 | Commands | Arguments | Description         |
 | -------- | --------- | ------------------- |
 | help     | (Word)    | Display a help menu |
-| ping     | <none>    | Responds with pong! |
 

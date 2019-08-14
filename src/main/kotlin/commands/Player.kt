@@ -10,7 +10,6 @@ import data.currentVoice
 import me.aberrantfox.kjdautils.api.dsl.CommandSet
 import me.aberrantfox.kjdautils.api.dsl.arg
 import me.aberrantfox.kjdautils.api.dsl.commands
-import me.aberrantfox.kjdautils.extensions.jda.toMember
 import me.aberrantfox.kjdautils.internal.arguments.IntegerRangeArg
 import me.aberrantfox.kjdautils.internal.arguments.UrlArg
 import me.aberrantfox.kjdautils.internal.arguments.VoiceChannelArg
@@ -28,6 +27,7 @@ fun playerCommands(plugin: ManagerService, channels: Channels) = commands {
         execute {
             val url = it.args.component1() as String
 
+            //TODO move to an audio connection event
             if (currentVoice == null){
                 if (currentChannel == null){
                     currentVoice = it.guild!!.getVoiceChannelById(channels.getVoiceChannel(it.channel.id))

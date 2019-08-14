@@ -18,6 +18,7 @@ class Handler(private val plugin:ManagerService) : AudioEventAdapter() {
 
     fun queue(track:AudioTrack){
         if (!plugin.player.startTrack(track, true)) {
+            println("queue trigger")
             queue.offer(track)
         }
     }
@@ -25,7 +26,8 @@ class Handler(private val plugin:ManagerService) : AudioEventAdapter() {
     fun clearQueue() = queue.clear()
 
     fun skip(){
-        currentChannel?.sendMessage("${plugin.player.playingTrack.info.title} has been skipped!")
+        println("skip trigger")
+        currentChannel?.sendMessage("${plugin.player.playingTrack.info.title} has been skipped!")?.queue()
         plugin.player.startTrack(queue.poll(), false)
     }
 
@@ -34,11 +36,13 @@ class Handler(private val plugin:ManagerService) : AudioEventAdapter() {
 
         if (next != null) {
             if (!plugin.player.startTrack(next, noInterrupt)) {
+                println("next track add trigger")
                 queue.add(next)
-                currentChannel?.sendMessage("${next.info.title} by ${next.info.author} has started playing!")
+                currentChannel?.sendMessage("${next.info.title} by ${next.info.author} has started playing!")?.queue()
             }else{
+                println("next track put trigger")
                 queue.put(next)
-                currentChannel?.sendMessage("${next.info.title} by ${next.info.author} has started playing!")
+                currentChannel?.sendMessage("${next.info.title} by ${next.info.author} has started playing!")?.queue()
             }
         } else {
             plugin.player.stopTrack()
@@ -46,29 +50,33 @@ class Handler(private val plugin:ManagerService) : AudioEventAdapter() {
     }
 
     override fun onPlayerPause(player:AudioPlayer) {
-        currentChannel?.sendMessage("${player.playingTrack.info.title} is now paused.")
+        println("Player Pause Trigger")
+        currentChannel?.sendMessage("${player.playingTrack.info.title} is now paused.")?.queue()
     }
 
     override fun onPlayerResume(player:AudioPlayer) {
-        currentChannel?.sendMessage("${player.playingTrack.info.title} resumed playing.")
+        println("Player Resume Trigger")
+        currentChannel?.sendMessage("${player.playingTrack.info.title} resumed playing.")?.queue()
     }
 
     override fun onTrackStart(player:AudioPlayer, track:AudioTrack) {
-        currentChannel?.sendMessage("${track.info.title} started playing.")
+        println("Track Start Trigger")
+        currentChannel?.sendMessage("${track.info.title} started playing.")?.queue()
     }
 
     override fun onTrackEnd(player:AudioPlayer, track:AudioTrack, endReason: AudioTrackEndReason) {
         if (endReason.mayStartNext || endReason == AudioTrackEndReason.FINISHED) {
+            println("Track End Trigger")
             startNextTrack(true)
         }
     }
 
     override fun onTrackException(player:AudioPlayer, track:AudioTrack, exception: FriendlyException) {
-        currentChannel?.sendMessage("\\!\\!\\! Error Occurred - Please Let Staff Know \\!\\!\\!")
+        currentChannel?.sendMessage("\\!\\!\\! Error Occurred - Please Let Staff Know \\!\\!\\!")?.queue()
     }
 
     override fun onTrackStuck(player:AudioPlayer, track:AudioTrack, thresholdMs:Long) {
-        currentChannel?.sendMessage("${track.info.title} is stuck - Skipping the song!")
+        currentChannel?.sendMessage("${track.info.title} is stuck - Skipping the song!")?.queue()
         startNextTrack(false)
     }
 }

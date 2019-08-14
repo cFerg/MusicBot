@@ -2,13 +2,28 @@ package commands
 
 import me.aberrantfox.kjdautils.api.dsl.CommandSet
 import me.aberrantfox.kjdautils.api.dsl.commands
+import services.InfoService
 
-@CommandSet("utility")
-fun pingCommand() = commands {
-    command("ping") {
-        description = "Responds with pong!"
+@CommandSet("Utility")
+fun pingCommand(infoService: InfoService) = commands {
+    command("Ping") {
+        description = "Displays network ping of the bot!"
         execute {
-            it.respond("pong!")
+            it.respond("Pong: ${it.discord.jda.gatewayPing}ms")
+        }
+    }
+
+    command("Source") {
+        description = "Display the (source code) repository link."
+        execute {
+            it.respond(infoService.source)
+        }
+    }
+
+    command("BotInfo") {
+        description = "Displays the bot information."
+        execute {
+            it.respond(infoService.botInfo(it.guild!!))
         }
     }
 }
