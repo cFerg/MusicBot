@@ -26,9 +26,5 @@
 | BotInfo  | <none>    | Displays the bot information.              |
 | Ping     | <none>    | Displays network ping of the bot!          |
 | Source   | <none>    | Display the (source code) repository link. |
-
-## utility
-| Commands | Arguments | Description         |
-| -------- | --------- | ------------------- |
-| help     | (Word)    | Display a help menu |
+| help     | (Word)    | Display a help menu                        |
 
