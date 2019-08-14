@@ -5,7 +5,7 @@ fun main(args: Array<String>) {
 
     startBot(token) {
         configure {
-            prefix = "$"
+
         }
     }
 }

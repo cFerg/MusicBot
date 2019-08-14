@@ -11,7 +11,7 @@ import java.util.concurrent.BlockingQueue
 
 @Service
 class Handler(private val plugin:ManagerService) : AudioEventAdapter() {
-    private var queue: BlockingQueue<AudioTrack> = LinkedBlockingDeque<AudioTrack>()
+    private var queue: BlockingQueue<AudioTrack> = LinkedBlockingDeque()
 
     fun isQueueEmpty():Boolean = queue.isNullOrEmpty()
 
