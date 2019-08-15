@@ -20,7 +20,7 @@ class Handler(private val plugin: ManagerService) : AudioEventAdapter() {
         }
     }
 
-    private fun startNextTrack(noInterrupt: Boolean) {
+    fun startNextTrack(noInterrupt: Boolean) {
         val next = queue.poll()
 
         if (next != null) {

@@ -79,7 +79,7 @@ fun playerCommands(plugin: ManagerService, channels: Channels) = commands {
                 it.respond("No songs currently queued.")
             } else {
                 it.respond("Skipped song: ${plugin.player.playingTrack.info.title} by ${plugin.player.playingTrack.info.author}")
-                plugin.player.startTrack(plugin.handler.queue.poll(), false)
+                plugin.handler.startNextTrack(false)
             }
         }
     }
