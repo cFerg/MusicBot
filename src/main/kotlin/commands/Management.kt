@@ -7,10 +7,10 @@ import me.aberrantfox.kjdautils.api.dsl.commands
 import me.aberrantfox.kjdautils.internal.arguments.VoiceChannelArg
 import net.dv8tion.jda.api.entities.VoiceChannel
 import utility.AudioPlayerSendHandler
-import services.ManagerService
+import services.AudioPlayerService
 
 @CommandSet("Management")
-fun managementCommands(plugin: ManagerService, channels: Channels) = commands {
+fun managementCommands(plugin: AudioPlayerService, channels: Channels) = commands {
     command("Move") {
         description = "Move bot to the current voice channel or to a specified voice channel via ID."
         requiresGuild = true

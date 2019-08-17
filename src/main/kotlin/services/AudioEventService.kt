@@ -10,26 +10,7 @@ import java.util.concurrent.LinkedBlockingDeque
 import java.util.concurrent.BlockingQueue
 
 @Service
-class Handler(private val plugin: ManagerService) : AudioEventAdapter() {
-    var queue: BlockingQueue<AudioTrack> = LinkedBlockingDeque()
-
-    fun queue(track: AudioTrack) {
-        if (!plugin.player.startTrack(track, true)) {
-            println("queue trigger")
-            queue.offer(track)
-        }
-    }
-
-    fun startNextTrack(noInterrupt: Boolean) {
-        val next = queue.poll()
-
-        if (next != null) {
-            plugin.player.startTrack(next, noInterrupt)
-            println("next track add trigger")
-            //currentChannel?.sendMessage("${next.info.title} by ${next.info.author} has started playing!")?.queue()
-        }
-    }
-
+class AudioEventService(private val plugin: AudioPlayerService) : AudioEventAdapter() {
     override fun onPlayerPause(player: AudioPlayer) {
         println("Player Pause Trigger")
         //currentChannel?.sendMessage("${player.playingTrack.info.title} is now paused.")?.queue()
@@ -48,7 +29,7 @@ class Handler(private val plugin: ManagerService) : AudioEventAdapter() {
     override fun onTrackEnd(player: AudioPlayer, track: AudioTrack, endReason: AudioTrackEndReason) {
         if (endReason.mayStartNext || endReason == AudioTrackEndReason.FINISHED) {
             println("Track End Trigger")
-            startNextTrack(true)
+            plugin.startNextTrack(true)
         }
     }
 
@@ -58,6 +39,6 @@ class Handler(private val plugin: ManagerService) : AudioEventAdapter() {
 
     override fun onTrackStuck(player: AudioPlayer, track: AudioTrack, thresholdMs: Long) {
         //currentChannel?.sendMessage("${track.info.title} is stuck - Skipping the song!")?.queue()
-        startNextTrack(false)
+        plugin.startNextTrack(false)
     }
 }

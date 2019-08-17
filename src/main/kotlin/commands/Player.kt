@@ -12,10 +12,10 @@ import me.aberrantfox.kjdautils.internal.arguments.IntegerRangeArg
 import me.aberrantfox.kjdautils.internal.arguments.UrlArg
 import net.dv8tion.jda.api.managers.AudioManager
 import utility.AudioPlayerSendHandler
-import services.ManagerService
+import services.AudioPlayerService
 
 @CommandSet("Player")
-fun playerCommands(plugin: ManagerService, channels: Channels) = commands {
+fun playerCommands(plugin: AudioPlayerService, channels: Channels) = commands {
     command("Play") {
         description = "Play the song listed - If a song is already playing, it's added to a queue."
         requiresGuild = true
@@ -30,13 +30,13 @@ fun playerCommands(plugin: ManagerService, channels: Channels) = commands {
 
             plugin.playerManager.loadItem(url, object : AudioLoadResultHandler {
                 override fun trackLoaded(track: AudioTrack) {
-                    plugin.handler.queue(track)
+                    plugin.queue(track)
                     it.respond("Added song: ${track.info.title} by ${track.info.author}")
                 }
 
                 override fun playlistLoaded(playlist: AudioPlaylist) {
                     for (track in playlist.tracks) {
-                        plugin.handler.queue(track)
+                        plugin.queue(track)
                         it.respond("Added song: ${track.info.title} by ${track.info.author}")
                     }
                 }
@@ -75,11 +75,11 @@ fun playerCommands(plugin: ManagerService, channels: Channels) = commands {
         description = "Skips the current song."
         requiresGuild = true
         execute {
-            if (plugin.handler.queue.isNullOrEmpty()) {
+            if (plugin.queue.isNullOrEmpty()) {
                 it.respond("No songs currently queued.")
             } else {
                 it.respond("Skipped song: ${plugin.player.playingTrack.info.title} by ${plugin.player.playingTrack.info.author}")
-                plugin.handler.startNextTrack(false)
+                plugin.startNextTrack(false)
             }
         }
     }
@@ -97,7 +97,7 @@ fun playerCommands(plugin: ManagerService, channels: Channels) = commands {
         description = "Removes all currently queued songs."
         requiresGuild = true
         execute {
-            plugin.handler.queue.clear()
+            plugin.queue.clear()
             it.respond("Cleared the current list of songs.")
         }
     }

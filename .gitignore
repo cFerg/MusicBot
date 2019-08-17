@@ -1,4 +1,6 @@
 .idea/
 target/**
 **.iml
-config/
+/config/
+/config/channels.json
+/config/config.json
