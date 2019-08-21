@@ -15,6 +15,7 @@ import services.AudioPlayerService
 
 @CommandSet("Management")
 fun managementCommands(plugin: AudioPlayerService, channels: Channels, persistenceService: PersistenceService) = commands {
+    //TODO consider deprecating move command - it's not always safe
     command("Move") {
         description = "Move bot to the current voice channel or to a specified voice channel via ID."
         requiresGuild = true
@@ -26,7 +27,7 @@ fun managementCommands(plugin: AudioPlayerService, channels: Channels, persisten
 
             val channel = it.args.component1() as VoiceChannel
             val manager = it.guild!!.audioManager
-            manager.sendingHandler = AudioPlayerSendHandler(plugin.player)
+            manager.sendingHandler = AudioPlayerSendHandler(plugin.player[it.guild!!.id]!!)
             manager.openAudioConnection(channel)
         }
     }
@@ -36,11 +37,12 @@ fun managementCommands(plugin: AudioPlayerService, channels: Channels, persisten
         requiresGuild = true
         execute {
             val manager = it.guild!!.audioManager
-            plugin.player.stopTrack()
+            plugin.player[it.guild!!.id]!!.stopTrack()
             manager.closeAudioConnection()
         }
     }
 
+    //TODO add a "pair already exists" check
     command("Link") {
         description = "Links a text and voice channel."
         requiresGuild = true

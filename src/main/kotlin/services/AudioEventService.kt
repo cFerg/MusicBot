@@ -6,11 +6,20 @@ import com.sedmelluq.discord.lavaplayer.tools.FriendlyException
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackEndReason
 import me.aberrantfox.kjdautils.api.annotation.Service
-import java.util.concurrent.LinkedBlockingDeque
-import java.util.concurrent.BlockingQueue
 
 @Service
 class AudioEventService(private val plugin: AudioPlayerService) : AudioEventAdapter() {
+    var guildID: String = ""
+
+    init {
+        for (i in plugin.audioEventService){
+            if (i.value == this){
+                guildID = i.key
+                break
+            }
+        }
+    }
+
     override fun onPlayerPause(player: AudioPlayer) {
         println("Player Pause Trigger")
         //currentChannel?.sendMessage("${player.playingTrack.info.title} is now paused.")?.queue()
@@ -29,7 +38,7 @@ class AudioEventService(private val plugin: AudioPlayerService) : AudioEventAdap
     override fun onTrackEnd(player: AudioPlayer, track: AudioTrack, endReason: AudioTrackEndReason) {
         if (endReason.mayStartNext || endReason == AudioTrackEndReason.FINISHED) {
             println("Track End Trigger")
-            plugin.startNextTrack(true)
+            plugin.startNextTrack(guildID, true)
         }
     }
 
@@ -39,6 +48,6 @@ class AudioEventService(private val plugin: AudioPlayerService) : AudioEventAdap
 
     override fun onTrackStuck(player: AudioPlayer, track: AudioTrack, thresholdMs: Long) {
         //currentChannel?.sendMessage("${track.info.title} is stuck - Skipping the song!")?.queue()
-        plugin.startNextTrack(false)
+        plugin.startNextTrack(guildID, false)
     }
 }

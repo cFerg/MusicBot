@@ -5,40 +5,47 @@ import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager
 import com.sedmelluq.discord.lavaplayer.player.DefaultAudioPlayerManager
 import com.sedmelluq.discord.lavaplayer.source.AudioSourceManagers
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack
+import data.Channels
 import me.aberrantfox.kjdautils.api.annotation.Service
 import java.util.concurrent.BlockingQueue
 import java.util.concurrent.LinkedBlockingDeque
 
 @Service
-class AudioPlayerService {
-    var queue: BlockingQueue<AudioTrack> = LinkedBlockingDeque()
-    var playerManager: AudioPlayerManager = DefaultAudioPlayerManager()
-    var player: AudioPlayer
-    var audioEventService: AudioEventService
+class AudioPlayerService(channels: Channels) {
+    var queue: MutableMap<String, BlockingQueue<AudioTrack>> = mutableMapOf()
+    var playerManager: MutableMap<String, AudioPlayerManager> = mutableMapOf()
+    var player: MutableMap<String, AudioPlayer> = mutableMapOf()
+    var audioEventService: MutableMap<String, AudioEventService> = mutableMapOf()
 
     init {
-        AudioSourceManagers.registerRemoteSources(playerManager)
-        AudioSourceManagers.registerLocalSource(playerManager)
+        //TODO add a pre-check error message for guild count
+        //TODO add a method to refresh/add a source after linking in a new guild
 
-        player = playerManager.createPlayer()
+        for (i in channels.channelPairings) {
+            queue[i.first] = LinkedBlockingDeque()
+            playerManager[i.first] = DefaultAudioPlayerManager()
 
-        audioEventService = AudioEventService(this)
+            AudioSourceManagers.registerRemoteSources(playerManager[i.first])
+            AudioSourceManagers.registerLocalSource(playerManager[i.first])
 
-        player.addListener(audioEventService)
-    }
-
-    fun queue(track: AudioTrack) {
-        if (!player.startTrack(track, true)) {
-            println("queue trigger")
-            queue.offer(track)
+            player[i.first] = playerManager[i.first]!!.createPlayer()
+            audioEventService[i.first] = AudioEventService(this)
+            player[i.first]!!.addListener(audioEventService[i.first])
         }
     }
 
-    fun startNextTrack(noInterrupt: Boolean) {
-        val next = queue.poll()
+    fun queue(guildID: String, track: AudioTrack) {
+        if (!player[guildID]!!.startTrack(track, true)) {
+            println("queue trigger")
+            queue[guildID]!!.offer(track)
+        }
+    }
+
+    fun startNextTrack(guildID: String, noInterrupt: Boolean) {
+        val next = queue[guildID]!!.poll()
 
         if (next != null) {
-            player.startTrack(next, noInterrupt)
+            player[guildID]!!.startTrack(next, noInterrupt)
             println("next track add trigger")
             //currentChannel?.sendMessage("${next.info.title} by ${next.info.author} has started playing!")?.queue()
         }

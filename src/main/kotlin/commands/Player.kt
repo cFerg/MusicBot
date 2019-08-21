@@ -25,18 +25,18 @@ fun playerCommands(plugin: AudioPlayerService, channels: Channels) = commands {
             val guild = it.guild!!
             val am: AudioManager = guild.audioManager
 
-            am.sendingHandler = AudioPlayerSendHandler(plugin.player)
-            am.openAudioConnection(guild.getVoiceChannelById(channels.getVoiceChannel(it.guild!!.id, it.channel.id)))
+            am.sendingHandler = AudioPlayerSendHandler(plugin.player[guild.id]!!)
+            am.openAudioConnection(guild.getVoiceChannelById(channels.getVoiceChannel(guild.id, it.channel.id)))
 
-            plugin.playerManager.loadItem(url, object : AudioLoadResultHandler {
+            plugin.playerManager[guild.id]!!.loadItem(url, object : AudioLoadResultHandler {
                 override fun trackLoaded(track: AudioTrack) {
-                    plugin.queue(track)
+                    plugin.queue(guild.id, track)
                     it.respond("Added song: ${track.info.title} by ${track.info.author}")
                 }
 
                 override fun playlistLoaded(playlist: AudioPlaylist) {
                     for (track in playlist.tracks) {
-                        plugin.queue(track)
+                        plugin.queue(guild.id, track)
                         it.respond("Added song: ${track.info.title} by ${track.info.author}")
                     }
                 }
@@ -52,10 +52,10 @@ fun playerCommands(plugin: AudioPlayerService, channels: Channels) = commands {
         description = "Pauses the current song."
         requiresGuild = true
         execute {
-            plugin.player.isPaused = true
+            plugin.player[it.guild!!.id]!!.isPaused = true
             //TODO fix long to seconds display later
-            val duration: Double = (plugin.player.playingTrack.position / 100).toDouble()
-            it.respond("Paused song: ${plugin.player.playingTrack.info.title} at ${duration / 10} seconds.")
+            val duration: Double = (plugin.player[it.guild!!.id]!!.playingTrack.position / 100).toDouble()
+            it.respond("Paused song: ${plugin.player[it.guild!!.id]!!.playingTrack.info.title} at ${duration / 10} seconds.")
         }
     }
 
@@ -63,10 +63,10 @@ fun playerCommands(plugin: AudioPlayerService, channels: Channels) = commands {
         description = "Continues the last song (If one is still queued)"
         requiresGuild = true
         execute {
-            plugin.player.isPaused = false
+            plugin.player[it.guild!!.id]!!.isPaused = false
             //TODO fix long to seconds display later
-            val duration: Double = (plugin.player.playingTrack.position / 100).toDouble()
-            it.respond("Resumed song: ${plugin.player.playingTrack.info.title} from ${duration / 10} seconds.")
+            val duration: Double = (plugin.player[it.guild!!.id]!!.playingTrack.position / 100).toDouble()
+            it.respond("Resumed song: ${plugin.player[it.guild!!.id]!!.playingTrack.info.title} from ${duration / 10} seconds.")
         }
     }
 
@@ -78,8 +78,8 @@ fun playerCommands(plugin: AudioPlayerService, channels: Channels) = commands {
             if (plugin.queue.isNullOrEmpty()) {
                 it.respond("No songs currently queued.")
             } else {
-                it.respond("Skipped song: ${plugin.player.playingTrack.info.title} by ${plugin.player.playingTrack.info.author}")
-                plugin.startNextTrack(false)
+                it.respond("Skipped song: ${plugin.player[it.guild!!.id]!!.playingTrack.info.title} by ${plugin.player[it.guild!!.id]!!.playingTrack.info.author}")
+                plugin.startNextTrack(it.guild!!.id, false)
             }
         }
     }
@@ -88,8 +88,8 @@ fun playerCommands(plugin: AudioPlayerService, channels: Channels) = commands {
         description = "Replays the current song from the beginning."
         requiresGuild = true
         execute {
-            plugin.player.playingTrack.position = 0
-            it.respond("Restarted the song: ${plugin.player.playingTrack.info.title}")
+            plugin.player[it.guild!!.id]!!.playingTrack.position = 0
+            it.respond("Restarted the song: ${plugin.player[it.guild!!.id]!!.playingTrack.info.title}")
         }
     }
 
@@ -107,19 +107,23 @@ fun playerCommands(plugin: AudioPlayerService, channels: Channels) = commands {
         requiresGuild = true
         expect(IntegerRangeArg(min = 0, max = 100))
         execute {
-            plugin.player.volume = it.args.component1() as Int
+            plugin.player[it.guild!!.id]!!.volume = it.args.component1() as Int
         }
     }
 
-    var previousVolume: Int = plugin.player.volume
+    var previousVolume: MutableMap<String, Int> = mutableMapOf()
 
     command("Mute") {
         description = "Mute bot, but keeps it playing."
         requiresGuild = true
         execute {
-            previousVolume = plugin.player.volume
-            plugin.player.volume = 0
-            it.respond("The bot is now muted.")
+            if (previousVolume.containsKey(it.guild!!.id)) {
+                it.respond("The bot is already muted.")
+            } else {
+                previousVolume[it.guild!!.id] = plugin.player[it.guild!!.id]!!.volume
+                plugin.player[it.guild!!.id]!!.volume = 0
+                it.respond("The bot is now muted.")
+            }
         }
     }
 
@@ -127,8 +131,13 @@ fun playerCommands(plugin: AudioPlayerService, channels: Channels) = commands {
         description = "Sets bot's volume back to previous level before it was muted."
         requiresGuild = true
         execute {
-            plugin.player.volume = previousVolume
-            it.respond("The bot is now unmuted.")
+            if (previousVolume.containsKey(it.guild!!.id)) {
+                plugin.player[it.guild!!.id]!!.volume = previousVolume[it.guild!!.id]!!
+                previousVolume.remove(it.guild!!.id)
+                it.respond("The bot is now unmuted.")
+            } else {
+                it.respond("The bot is currently not muted - check the volume level.")
+            }
         }
     }
 }
