@@ -6,10 +6,12 @@
 | (Argument) | This argument is optional. |
 
 ## Management
-| Commands   | Arguments                            | Description                                                                   |
-| ---------- | ------------------------------------ | ----------------------------------------------------------------------------- |
-| Disconnect | <none>                               | Remove the bot from its current voice channel.                                |
-| Move       | (The ID of any valid voice channel.) | Move bot to the current voice channel or to a specified voice channel via ID. |
+| Commands   | Arguments                                       | Description                                                                   |
+| ---------- | ----------------------------------------------- | ----------------------------------------------------------------------------- |
+| Disconnect | <none>                                          | Remove the bot from its current voice channel.                                |
+| Link       | The ID of any valid voice channel., TextChannel | Links a text and voice channel.                                               |
+| Move       | (The ID of any valid voice channel.)            | Move bot to the current voice channel or to a specified voice channel via ID. |
+| Unlink     | The ID of any valid voice channel., TextChannel | Un-Links a text and voice channel.                                            |
 
 ## Player
 | Commands | Arguments       | Description                                                                 |

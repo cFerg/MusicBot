@@ -26,7 +26,7 @@ fun playerCommands(plugin: AudioPlayerService, channels: Channels) = commands {
             val am: AudioManager = guild.audioManager
 
             am.sendingHandler = AudioPlayerSendHandler(plugin.player)
-            am.openAudioConnection(guild.getVoiceChannelById(channels.getVoiceChannel(it.channel.id)))
+            am.openAudioConnection(guild.getVoiceChannelById(channels.getVoiceChannel(it.guild!!.id, it.channel.id)))
 
             plugin.playerManager.loadItem(url, object : AudioLoadResultHandler {
                 override fun trackLoaded(track: AudioTrack) {

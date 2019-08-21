@@ -3,20 +3,30 @@ package data
 import me.aberrantfox.kjdautils.api.annotation.Data
 
 @Data("config/channels.json")
-data class Channels(var channelPairings: MutableList<ChannelPair> = mutableListOf(ChannelPair())){
-    fun getVoiceChannel(textChannelID: String) = channelPairings.first {
+data class Channels(var channelPairings: MutableList<Pair<String, MutableList<ChannelPair>>> = mutableListOf()) {
+    fun getGuild(guildID: String): MutableList<ChannelPair> {
+        for (i in channelPairings){
+            if (i.first == guildID){
+                return i.second
+            }
+        }
+
+        return mutableListOf()
+    }
+
+    fun getVoiceChannel(guildID: String, textChannelID: String) = getGuild(guildID).first {
         it.textChannelID == textChannelID
     }.voiceChannelID
 
-    fun getTextChannel(voiceChannelID: String) = channelPairings.first {
-        it.voiceChannelID == voiceChannelID
-    }.textChannelID
-
-    fun hasVoiceChannel(voiceChannelID: String) = channelPairings.any {
+    fun hasVoiceChannel(guildID: String, voiceChannelID: String) = getGuild(guildID).any {
         it.voiceChannelID == voiceChannelID
     }
 
-    fun hasTextChannel(textChannelID: String) = channelPairings.any {
+    fun getTextChannel(guildID: String, voiceChannelID: String) = getGuild(guildID).first {
+        it.voiceChannelID == voiceChannelID
+    }.textChannelID
+
+    fun hasTextChannel(guildID: String, textChannelID: String) = getGuild(guildID).any {
         it.textChannelID == textChannelID
     }
 }

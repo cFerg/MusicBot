@@ -12,6 +12,6 @@ private const val Category = "Player"
 fun isMusicChannelPrecondition(channels: Channels) = exit@{ event: CommandEvent ->
     val command = event.container.commands[event.commandStruct.commandName] ?: return@exit Pass
     if (command.category != Category) return@exit Pass
-    if (channels.hasTextChannel(event.channel.id)) return@exit Pass
+    if (channels.hasTextChannel(event.guild!!.id, event.channel.id)) return@exit Pass
     return@exit Fail("Please perform this command in the appropriate channel.")
 }
