@@ -16,6 +16,7 @@ import services.AudioPlayerService
 
 @CommandSet("Player")
 fun playerCommands(plugin: AudioPlayerService, channels: Channels) = commands {
+    //TODO add add as an alias of an argumented command
     command("Play") {
         description = "Play the song listed - If a song is already playing, it's added to a queue."
         requiresGuild = true
@@ -53,21 +54,34 @@ fun playerCommands(plugin: AudioPlayerService, channels: Channels) = commands {
         description = "Pauses the current song."
         requiresGuild = true
         execute {
-            plugin.player[it.guild!!.id]!!.isPaused = true
-            //TODO fix long to seconds display later
-            val duration: Double = (plugin.player[it.guild!!.id]!!.playingTrack.position / 100).toDouble()
-            it.respond("Paused song: ${plugin.player[it.guild!!.id]!!.playingTrack.info.title} at ${duration / 10} seconds.")
+            if (plugin.player[it.guild!!.id]!!.isPaused){
+                it.respond("Player is already paused.")
+            }else {
+                plugin.player[it.guild!!.id]!!.isPaused = true
+                //TODO fix long to seconds display later
+                val duration: Double = (plugin.player[it.guild!!.id]!!.playingTrack.position / 100).toDouble()
+                it.respond("Paused song: ${plugin.player[it.guild!!.id]!!.playingTrack.info.title} at ${duration / 10} seconds.")
+            }
         }
     }
 
+    //TODO add play with no arguments as an invoker
     command("Resume") {
         description = "Continues the last song (If one is still queued)"
         requiresGuild = true
         execute {
-            plugin.player[it.guild!!.id]!!.isPaused = false
-            //TODO fix long to seconds display later
-            val duration: Double = (plugin.player[it.guild!!.id]!!.playingTrack.position / 100).toDouble()
-            it.respond("Resumed song: ${plugin.player[it.guild!!.id]!!.playingTrack.info.title} from ${duration / 10} seconds.")
+            if (!plugin.player[it.guild!!.id]!!.isPaused){
+                if (plugin.player[it.guild!!.id]!!.playingTrack != null){
+                    it.respond("The song is already playing.")
+                }else{
+                    it.respond("No songs are currently queued.")
+                }
+            }else {
+                plugin.player[it.guild!!.id]!!.isPaused = false
+                //TODO fix long to seconds display later
+                val duration: Double = (plugin.player[it.guild!!.id]!!.playingTrack.position / 100).toDouble()
+                it.respond("Resumed song: ${plugin.player[it.guild!!.id]!!.playingTrack.info.title} from ${duration / 10} seconds.")
+            }
         }
     }
 
