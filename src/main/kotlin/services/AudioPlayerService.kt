@@ -18,9 +18,6 @@ class AudioPlayerService(channels: Channels) {
     var audioEventService: MutableMap<String, AudioEventService> = mutableMapOf()
 
     init {
-        //TODO add a pre-check error message for guild count
-        //TODO add a method to refresh/add a source after linking in a new guild
-
         for (i in channels.channelPairings) {
             queue[i.first] = LinkedBlockingDeque()
             playerManager[i.first] = DefaultAudioPlayerManager()
@@ -29,6 +26,7 @@ class AudioPlayerService(channels: Channels) {
             AudioSourceManagers.registerLocalSource(playerManager[i.first])
 
             player[i.first] = playerManager[i.first]!!.createPlayer()
+            player[i.first]!!.volume = 30
             audioEventService[i.first] = AudioEventService(this)
             player[i.first]!!.addListener(audioEventService[i.first])
         }

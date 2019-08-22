@@ -35,6 +35,7 @@ fun playerCommands(plugin: AudioPlayerService, channels: Channels) = commands {
                 }
 
                 override fun playlistLoaded(playlist: AudioPlaylist) {
+                    //TODO add permission check for individuals to play playlists
                     for (track in playlist.tracks) {
                         plugin.queue(guild.id, track)
                         it.respond("Added song: ${track.info.title} by ${track.info.author}")
@@ -71,6 +72,7 @@ fun playerCommands(plugin: AudioPlayerService, channels: Channels) = commands {
     }
 
     //TODO add next as an alias
+    //TODO person who queued the song can skip only or staff
     command("Skip") {
         description = "Skips the current song."
         requiresGuild = true
