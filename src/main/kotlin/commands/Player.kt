@@ -16,7 +16,7 @@ import services.AudioPlayerService
 
 @CommandSet("Player")
 fun playerCommands(plugin: AudioPlayerService, channels: Channels) = commands {
-    //TODO add add as an alias of an argumented command
+    //TODO add add as an alias of the command with an argument
     command("Play") {
         description = "Play the song listed - If a song is already playing, it's added to a queue."
         requiresGuild = true
@@ -31,14 +31,14 @@ fun playerCommands(plugin: AudioPlayerService, channels: Channels) = commands {
 
             plugin.playerManager[guild.id]!!.loadItem(url, object : AudioLoadResultHandler {
                 override fun trackLoaded(track: AudioTrack) {
-                    plugin.queue(guild.id, track)
+                    plugin.queueAdd(guild.id, track)
                     it.respond("Added song: ${track.info.title} by ${track.info.author}")
                 }
 
                 override fun playlistLoaded(playlist: AudioPlaylist) {
                     //TODO add permission check for individuals to play playlists
                     for (track in playlist.tracks) {
-                        plugin.queue(guild.id, track)
+                        plugin.queueAdd(guild.id, track)
                         it.respond("Added song: ${track.info.title} by ${track.info.author}")
                     }
                 }
@@ -94,8 +94,12 @@ fun playerCommands(plugin: AudioPlayerService, channels: Channels) = commands {
             if (plugin.queue.isNullOrEmpty()) {
                 it.respond("No songs currently queued.")
             } else {
-                it.respond("Skipped song: ${plugin.player[it.guild!!.id]!!.playingTrack.info.title} by ${plugin.player[it.guild!!.id]!!.playingTrack.info.author}")
-                plugin.startNextTrack(it.guild!!.id, false)
+                if (plugin.player[it.guild!!.id]!!.playingTrack != null){
+                    it.respond("Skipped song: ${plugin.player[it.guild!!.id]!!.playingTrack.info.title} by ${plugin.player[it.guild!!.id]!!.playingTrack.info.author}")
+                    plugin.startNextTrack(it.guild!!.id, false)
+                }else{
+                    it.respond("No songs currently queued.")
+                }
             }
         }
     }

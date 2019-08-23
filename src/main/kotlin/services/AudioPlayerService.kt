@@ -32,9 +32,8 @@ class AudioPlayerService(channels: Channels) {
         }
     }
 
-    fun queue(guildID: String, track: AudioTrack) {
+    fun queueAdd(guildID: String, track: AudioTrack) {
         if (!player[guildID]!!.startTrack(track, true)) {
-            println("queue trigger")
             queue[guildID]!!.offer(track)
         }
     }
@@ -44,8 +43,9 @@ class AudioPlayerService(channels: Channels) {
 
         if (next != null) {
             player[guildID]!!.startTrack(next, noInterrupt)
-            println("next track add trigger")
             //currentChannel?.sendMessage("${next.info.title} by ${next.info.author} has started playing!")?.queue()
+        }else{
+            player[guildID]!!.stopTrack()
         }
     }
 }
