@@ -8,6 +8,7 @@ import data.Channels
 import me.aberrantfox.kjdautils.api.dsl.CommandSet
 import me.aberrantfox.kjdautils.api.dsl.arg
 import me.aberrantfox.kjdautils.api.dsl.commands
+import me.aberrantfox.kjdautils.internal.arguments.ChoiceArg
 import me.aberrantfox.kjdautils.internal.arguments.IntegerRangeArg
 import me.aberrantfox.kjdautils.internal.arguments.UrlArg
 import net.dv8tion.jda.api.managers.AudioManager

@@ -18,17 +18,17 @@ class AudioPlayerService(channels: Channels) {
     var audioEventService: MutableMap<String, AudioEventService> = mutableMapOf()
 
     init {
-        for (i in channels.channelPairings) {
-            queue[i.first] = LinkedBlockingDeque()
-            playerManager[i.first] = DefaultAudioPlayerManager()
+        for (i in channels.channelGroups) {
+            queue[i.key] = LinkedBlockingDeque()
+            playerManager[i.key] = DefaultAudioPlayerManager()
 
-            AudioSourceManagers.registerRemoteSources(playerManager[i.first])
-            AudioSourceManagers.registerLocalSource(playerManager[i.first])
+            AudioSourceManagers.registerRemoteSources(playerManager[i.key])
+            AudioSourceManagers.registerLocalSource(playerManager[i.key])
 
-            player[i.first] = playerManager[i.first]!!.createPlayer()
-            player[i.first]!!.volume = 30
-            audioEventService[i.first] = AudioEventService(this)
-            player[i.first]!!.addListener(audioEventService[i.first])
+            player[i.key] = playerManager[i.key]!!.createPlayer()
+            player[i.key]!!.volume = 30
+            audioEventService[i.key] = AudioEventService(this)
+            player[i.key]!!.addListener(audioEventService[i.key])
         }
     }
 
