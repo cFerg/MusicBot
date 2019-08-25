@@ -34,7 +34,7 @@ MusicBot is a simple bot for playing music and streams within discord servers.
 See [setup.md](setup.md) for a setup guide.
 
 ## Commands
-See [commands.md](commands.md) for a list of commands.
+See [io.github.cferg.musicbot.commands.md](commands.md) for a list of io.github.cferg.musicbot.commands.
 
 ## License
 This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details

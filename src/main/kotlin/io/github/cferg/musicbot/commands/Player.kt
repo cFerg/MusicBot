@@ -1,19 +1,19 @@
-package commands
+package io.github.cferg.musicbot.commands
 
 import com.sedmelluq.discord.lavaplayer.player.AudioLoadResultHandler
 import com.sedmelluq.discord.lavaplayer.tools.FriendlyException
 import com.sedmelluq.discord.lavaplayer.track.AudioPlaylist
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack
-import data.Channels
+import io.github.cferg.musicbot.data.Channels
 import me.aberrantfox.kjdautils.api.dsl.CommandSet
 import me.aberrantfox.kjdautils.api.dsl.arg
 import me.aberrantfox.kjdautils.api.dsl.commands
 import me.aberrantfox.kjdautils.internal.arguments.IntegerRangeArg
 import me.aberrantfox.kjdautils.internal.arguments.UrlArg
 import net.dv8tion.jda.api.managers.AudioManager
-import services.AudioPlayerService
-import utility.AudioPlayerSendHandler
-import services.AudioPlayerService.*
+import io.github.cferg.musicbot.services.AudioPlayerService
+import io.github.cferg.musicbot.utility.AudioPlayerSendHandler
+import io.github.cferg.musicbot.services.AudioPlayerService.*
 
 @CommandSet("Player")
 fun playerCommands(plugin: AudioPlayerService, channels: Channels) = commands {

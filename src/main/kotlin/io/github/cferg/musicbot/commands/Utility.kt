@@ -1,8 +1,8 @@
-package commands
+package io.github.cferg.musicbot.commands
 
 import me.aberrantfox.kjdautils.api.dsl.CommandSet
 import me.aberrantfox.kjdautils.api.dsl.commands
-import services.InfoService
+import io.github.cferg.musicbot.services.InfoService
 
 @CommandSet("Utility")
 fun pingCommand(infoService: InfoService) = commands {

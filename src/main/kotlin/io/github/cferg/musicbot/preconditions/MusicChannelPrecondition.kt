@@ -1,6 +1,6 @@
-package preconditions
+package io.github.cferg.musicbot.preconditions
 
-import data.Channels
+import io.github.cferg.musicbot.data.Channels
 import me.aberrantfox.kjdautils.api.dsl.CommandEvent
 import me.aberrantfox.kjdautils.api.dsl.Precondition
 import me.aberrantfox.kjdautils.internal.command.Fail

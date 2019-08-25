@@ -1,4 +1,4 @@
-package data
+package io.github.cferg.musicbot.data
 
 import me.aberrantfox.kjdautils.api.annotation.Data
 

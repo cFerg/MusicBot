@@ -1,8 +1,8 @@
-package commands
+package io.github.cferg.musicbot.commands
 
-import data.ChannelGroup
-import data.VoicePair
-import data.Channels
+import io.github.cferg.musicbot.data.ChannelGroup
+import io.github.cferg.musicbot.data.VoicePair
+import io.github.cferg.musicbot.data.Channels
 import me.aberrantfox.kjdautils.api.dsl.CommandSet
 import me.aberrantfox.kjdautils.api.dsl.arg
 import me.aberrantfox.kjdautils.api.dsl.commands
@@ -12,8 +12,8 @@ import me.aberrantfox.kjdautils.internal.arguments.VoiceChannelArg
 import me.aberrantfox.kjdautils.internal.di.PersistenceService
 import net.dv8tion.jda.api.entities.TextChannel
 import net.dv8tion.jda.api.entities.VoiceChannel
-import utility.AudioPlayerSendHandler
-import services.AudioPlayerService
+import io.github.cferg.musicbot.utility.AudioPlayerSendHandler
+import io.github.cferg.musicbot.services.AudioPlayerService
 
 @CommandSet("Management")
 fun managementCommands(plugin: AudioPlayerService, channels: Channels, persistenceService: PersistenceService) = commands {
@@ -133,7 +133,7 @@ fun managementCommands(plugin: AudioPlayerService, channels: Channels, persisten
                     it.respond("No channel grouping set up - You have nothing to remove.")
                 }
             }else{
-                it.respond("Please use one of the appropriate commands.\nFor Setting the Logging Channel\$\$Log Add/Set <TextChannelID>\nFor Removing the logging channel:\$\$Log Remove/Delete <TextChannelID>")
+                it.respond("Please use one of the appropriate io.github.cferg.musicbot.commands.\nFor Setting the Logging Channel\$\$Log Add/Set <TextChannelID>\nFor Removing the logging channel:\$\$Log Remove/Delete <TextChannelID>")
             }
         }
     }

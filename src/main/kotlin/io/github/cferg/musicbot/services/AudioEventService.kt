@@ -1,4 +1,4 @@
-package services
+package io.github.cferg.musicbot.services
 
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayer
 import com.sedmelluq.discord.lavaplayer.player.event.AudioEventAdapter

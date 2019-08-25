@@ -1,11 +1,8 @@
-package listeners
+package io.github.cferg.musicbot.listeners
 
 import com.google.common.eventbus.Subscribe
-import net.dv8tion.jda.api.events.guild.GuildBanEvent
-import net.dv8tion.jda.api.events.guild.GuildLeaveEvent
 import net.dv8tion.jda.api.events.guild.member.GuildMemberLeaveEvent
-import net.dv8tion.jda.api.events.guild.member.GuildMemberRoleAddEvent
-import services.AudioPlayerService
+import io.github.cferg.musicbot.services.AudioPlayerService
 
 class MemberLeaveListener(private val plugin: AudioPlayerService) {
     //TODO log that the songs were removed

@@ -1,6 +1,6 @@
-package services
+package io.github.cferg.musicbot.services
 
-import data.Configuration
+import io.github.cferg.musicbot.data.Configuration
 import me.aberrantfox.kjdautils.api.annotation.Service
 import me.aberrantfox.kjdautils.discord.Discord
 

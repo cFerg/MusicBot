@@ -1,8 +1,8 @@
-package listeners
+package io.github.cferg.musicbot.listeners
 
 import com.google.common.eventbus.Subscribe
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent
-import services.InfoService
+import io.github.cferg.musicbot.services.InfoService
 
 //TODO remove when this is added to kUtils
 class MessageListener(private val infoService: InfoService) {
