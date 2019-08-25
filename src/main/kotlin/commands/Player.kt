@@ -8,12 +8,12 @@ import data.Channels
 import me.aberrantfox.kjdautils.api.dsl.CommandSet
 import me.aberrantfox.kjdautils.api.dsl.arg
 import me.aberrantfox.kjdautils.api.dsl.commands
-import me.aberrantfox.kjdautils.internal.arguments.ChoiceArg
 import me.aberrantfox.kjdautils.internal.arguments.IntegerRangeArg
 import me.aberrantfox.kjdautils.internal.arguments.UrlArg
 import net.dv8tion.jda.api.managers.AudioManager
-import utility.AudioPlayerSendHandler
 import services.AudioPlayerService
+import utility.AudioPlayerSendHandler
+import services.AudioPlayerService.*
 
 @CommandSet("Player")
 fun playerCommands(plugin: AudioPlayerService, channels: Channels) = commands {
@@ -30,16 +30,20 @@ fun playerCommands(plugin: AudioPlayerService, channels: Channels) = commands {
             am.sendingHandler = AudioPlayerSendHandler(plugin.player[guild.id]!!)
             am.openAudioConnection(guild.getVoiceChannelById(channels.getVoiceChannel(guild.id, it.channel.id)))
 
+            //TODO add configurable queue limit per member
+            //TODO add in voice-chat and is not muted check
             plugin.playerManager[guild.id]!!.loadItem(url, object : AudioLoadResultHandler {
                 override fun trackLoaded(track: AudioTrack) {
-                    plugin.queueAdd(guild.id, track)
+                    //TODO add track length check
+                    plugin.queueAdd(guild.id, Song(track, it.author.discriminator))
                     it.respond("Added song: ${track.info.title} by ${track.info.author}")
                 }
 
                 override fun playlistLoaded(playlist: AudioPlaylist) {
                     //TODO add permission check for individuals to play playlists
+                    //TODO add track length check - using configurable minimum and max range
                     for (track in playlist.tracks) {
-                        plugin.queueAdd(guild.id, track)
+                        plugin.queueAdd(guild.id, Song(track, it.author.discriminator))
                         it.respond("Added song: ${track.info.title} by ${track.info.author}")
                     }
                 }
@@ -55,13 +59,20 @@ fun playerCommands(plugin: AudioPlayerService, channels: Channels) = commands {
         description = "Pauses the current song."
         requiresGuild = true
         execute {
-            if (plugin.player[it.guild!!.id]!!.isPaused){
+            val music = plugin.player[it.guild!!.id]!!
+
+            if (music.isPaused){
                 it.respond("Player is already paused.")
             }else {
-                plugin.player[it.guild!!.id]!!.isPaused = true
+                music.isPaused = true
+
                 //TODO fix long to seconds display later
-                val duration: Double = (plugin.player[it.guild!!.id]!!.playingTrack.position / 100).toDouble()
-                it.respond("Paused song: ${plugin.player[it.guild!!.id]!!.playingTrack.info.title} at ${duration / 10} seconds.")
+                if (music.playingTrack != null){
+                    val duration: Double = (music.playingTrack.position / 100).toDouble()
+                    it.respond("Paused song: ${music.playingTrack.info.title} at ${duration / 10} seconds.")
+                }else{
+                    it.respond("Player is paused, but no songs are currently queued.")
+                }
             }
         }
     }
@@ -71,17 +82,24 @@ fun playerCommands(plugin: AudioPlayerService, channels: Channels) = commands {
         description = "Continues the last song (If one is still queued)"
         requiresGuild = true
         execute {
-            if (!plugin.player[it.guild!!.id]!!.isPaused){
-                if (plugin.player[it.guild!!.id]!!.playingTrack != null){
+            val music = plugin.player[it.guild!!.id]!!
+
+            if (!music.isPaused){
+                if (music.playingTrack != null){
                     it.respond("The song is already playing.")
                 }else{
                     it.respond("No songs are currently queued.")
                 }
             }else {
-                plugin.player[it.guild!!.id]!!.isPaused = false
+                music.isPaused = false
+
                 //TODO fix long to seconds display later
-                val duration: Double = (plugin.player[it.guild!!.id]!!.playingTrack.position / 100).toDouble()
-                it.respond("Resumed song: ${plugin.player[it.guild!!.id]!!.playingTrack.info.title} from ${duration / 10} seconds.")
+                if (music.playingTrack != null) {
+                    val duration: Double = (music.playingTrack.position / 100).toDouble()
+                    it.respond("Resumed song: ${music.playingTrack.info.title} from ${duration / 10} seconds.")
+                }else{
+                    it.respond("Player is resumed, but no songs are currently queued.")
+                }
             }
         }
     }
@@ -92,7 +110,7 @@ fun playerCommands(plugin: AudioPlayerService, channels: Channels) = commands {
         description = "Skips the current song."
         requiresGuild = true
         execute {
-            if (plugin.queue.isNullOrEmpty()) {
+            if (plugin.songQueue.isNullOrEmpty()) {
                 it.respond("No songs currently queued.")
             } else {
                 if (plugin.player[it.guild!!.id]!!.playingTrack != null){
@@ -118,7 +136,7 @@ fun playerCommands(plugin: AudioPlayerService, channels: Channels) = commands {
         description = "Removes all currently queued songs."
         requiresGuild = true
         execute {
-            plugin.queue.clear()
+            plugin.songQueue.clear()
             it.respond("Cleared the current list of songs.")
         }
     }
