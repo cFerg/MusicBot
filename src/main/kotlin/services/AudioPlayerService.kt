@@ -10,7 +10,7 @@ import me.aberrantfox.kjdautils.api.annotation.Service
 
 @Service
 class AudioPlayerService(channels: Channels) {
-    var songQueue: MutableMap<String, List<Song>> = mutableMapOf()
+    var songQueue: MutableMap<String, MutableList<Song>> = mutableMapOf()
     var playerManager: MutableMap<String, AudioPlayerManager> = mutableMapOf()
     var player: MutableMap<String, AudioPlayer> = mutableMapOf()
     var audioEventService: MutableMap<String, AudioEventService> = mutableMapOf()
@@ -33,18 +33,15 @@ class AudioPlayerService(channels: Channels) {
     data class Song(val track: AudioTrack, val memberID: String)
 
     fun queueAdd(guildID: String, song: Song) {
-        println("Queue Trigger: ${song.track.info.title}")
-
         if (!player[guildID]!!.startTrack(song.track, true)) {
-            println("Add Trigger: ${song.track.info.title}")
-            songQueue[guildID]!! + song
+            songQueue[guildID]!!.add(song)
         }
     }
 
     fun clearByMember(guildID: String, memberID: String){
         for (i in songQueue[guildID]!!){
             if(i.memberID == memberID){
-                songQueue[guildID]!! - i
+                songQueue[guildID]!!.remove(i)
             }
         }
     }
@@ -53,11 +50,10 @@ class AudioPlayerService(channels: Channels) {
         val next = songQueue[guildID]!!.firstOrNull()
 
         if (next != null) {
-            println("Start Trigger: ${next.track.info.title}")
             player[guildID]!!.startTrack(next.track, noInterrupt)
+            songQueue[guildID]!!.removeAt(0)
             //currentChannel?.sendMessage("${next.info.title} by ${next.info.author} has started playing!")?.queue()
         }else{
-            println("Stop trigger.")
             player[guildID]!!.stopTrack()
         }
     }
