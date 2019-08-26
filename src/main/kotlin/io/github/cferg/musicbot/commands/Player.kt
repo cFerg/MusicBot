@@ -25,33 +25,39 @@ fun playerCommands(plugin: AudioPlayerService, channels: Channels) = commands {
         execute {
             val url = it.args.component1() as String
             val guild = it.guild!!
-            val am: AudioManager = guild.audioManager
-
-            am.sendingHandler = AudioPlayerSendHandler(plugin.player[guild.id]!!)
-            am.openAudioConnection(guild.getVoiceChannelById(channels.getVoiceChannel(guild.id, it.channel.id)))
+            val vc = guild.getVoiceChannelById(channels.getVoiceChannel(guild.id, it.channel.id))
 
             //TODO add configurable queue limit per member
-            //TODO add in voice-chat and is not muted check
-            plugin.playerManager[guild.id]!!.loadItem(url, object : AudioLoadResultHandler {
-                override fun trackLoaded(track: AudioTrack) {
-                    //TODO add track length check
-                    plugin.queueAdd(guild.id, Song(track, it.author.discriminator))
-                    it.respond("Added song: ${track.info.title} by ${track.info.author}")
-                }
+            val authorID = it.author.id
 
-                override fun playlistLoaded(playlist: AudioPlaylist) {
-                    //TODO add permission check for individuals to play playlists
-                    //TODO add track length check - using configurable minimum and max range
-                    for (track in playlist.tracks) {
+            if (vc!!.members.firstOrNull { it.user.id == authorID } != null) {
+                val am: AudioManager = guild.audioManager
+                am.sendingHandler = AudioPlayerSendHandler(plugin.player[guild.id]!!)
+                am.openAudioConnection(vc)
+
+                plugin.playerManager[guild.id]!!.loadItem(url, object : AudioLoadResultHandler {
+                    override fun trackLoaded(track: AudioTrack) {
+                        //TODO add track length check
                         plugin.queueAdd(guild.id, Song(track, it.author.discriminator))
                         it.respond("Added song: ${track.info.title} by ${track.info.author}")
                     }
-                }
 
-                override fun noMatches() = it.respond("No matching song found")
+                    override fun playlistLoaded(playlist: AudioPlaylist) {
+                        //TODO add permission check for individuals to play playlists
+                        //TODO add track length check - using configurable minimum and max range
+                        for (track in playlist.tracks) {
+                            plugin.queueAdd(guild.id, Song(track, it.author.discriminator))
+                            it.respond("Added song: ${track.info.title} by ${track.info.author}")
+                        }
+                    }
 
-                override fun loadFailed(throwable: FriendlyException) = it.respond("Error, could not load track.")
-            })
+                    override fun noMatches() = it.respond("No matching song found")
+
+                    override fun loadFailed(throwable: FriendlyException) = it.respond("Error, could not load track.")
+                })
+            }else{
+                it.respond("Please join a voice channel to use this command.")
+            }
         }
     }
 
@@ -114,6 +120,8 @@ fun playerCommands(plugin: AudioPlayerService, channels: Channels) = commands {
                 it.respond("No songs currently queued.")
             } else {
                 if (plugin.player[it.guild!!.id]!!.playingTrack != null){
+                    if (it.author.discriminator == plugin.songQueue[it.guild!!.id]!![0].memberID)
+
                     it.respond("Skipped song: ${plugin.player[it.guild!!.id]!!.playingTrack.info.title} by ${plugin.player[it.guild!!.id]!!.playingTrack.info.author}")
                     plugin.startNextTrack(it.guild!!.id, false)
                 }else{
