@@ -31,10 +31,10 @@ MusicBot is a simple bot for playing music and streams within discord servers.
 <div align="center">
 
 ## Setup
-See [SETUP.md](SETUP.md) for a setup guide.
+See [SETUP.md](setup.md) for a setup guide.
 
 ## Commands
-See [COMMANDS.md](COMMANDS.md) for a list of commands.
+See [COMMANDS.md](commands.md) for a list of commands.
 
 ## License
 This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details
