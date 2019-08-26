@@ -119,6 +119,7 @@
                             </archive>
                             <descriptorRefs>
                                 <descriptorRef>jar-with-dependencies</descriptorRef>
+                                <descriptorRef>src</descriptorRef>
                             </descriptorRefs>
                             <finalName>MusicBot</finalName>
                         </configuration>
