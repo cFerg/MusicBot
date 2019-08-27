@@ -20,7 +20,8 @@ class InfoService(private val configuration: Configuration) {
 
     fun botInfo(guild: Guild) = embed {
         val self = guild.jda.selfUser
-        val requiredRole = configuration.getGuildConfig(guild.id)?.requiredRole ?: "<Not Configured>" //TODO change with required role later
+
+        val requiredRole = configuration.guildConfigurations[guild.id]?.djRole ?: "<Not Configured>"
 
         color = Color.green
         thumbnail = self.effectiveAvatarUrl
@@ -28,7 +29,7 @@ class InfoService(private val configuration: Configuration) {
         addInlineField("Author", "[$author](https://discordapp.com/users/167417801873555456/)")
         addInlineField("Version", version)
         addInlineField("Prefix", configuration.prefix)
-        addInlineField("Required role", requiredRole)
+        addInlineField("DJ role", requiredRole)
         addInlineField("Source", source)
     }
 }

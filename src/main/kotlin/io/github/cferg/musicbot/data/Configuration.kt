@@ -3,12 +3,11 @@ package io.github.cferg.musicbot.data
 import me.aberrantfox.kjdautils.api.annotation.Data
 
 @Data("config/config.json")
-data class Configuration(val botOwner: String = "insert-id",
+data class Configuration(val botOwner: String = "167417801873555456",
                          var prefix: String = "$",
-                         val guildConfigurations: MutableList<GuildConfig> = mutableListOf(GuildConfig())) {
-                            fun getGuildConfig(guildID: String) = guildConfigurations.firstOrNull {
-                                it.guildID == guildID
-                            }
-                        }
+                         var guildConfigurations: MutableMap<String, GuildRoles> = mutableMapOf())
 
-data class GuildConfig(val guildID: String = "insert-id", var requiredRole: String = "Staff")
+data class GuildRoles(var djRole: String = "insert-role-id",
+                      var manageRole: String = "insert-role-id",
+                       var muteRole: String = "insert-role-id",
+                       var staffRole: String = "insert-role-id")

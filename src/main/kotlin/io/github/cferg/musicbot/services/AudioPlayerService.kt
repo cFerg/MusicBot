@@ -7,6 +7,8 @@ import com.sedmelluq.discord.lavaplayer.source.AudioSourceManagers
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack
 import io.github.cferg.musicbot.data.Channels
 import me.aberrantfox.kjdautils.api.annotation.Service
+import me.aberrantfox.kjdautils.discord.Discord
+import net.dv8tion.jda.api.entities.Role
 
 @Service
 class AudioPlayerService(channels: Channels) {

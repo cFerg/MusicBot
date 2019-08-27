@@ -5,6 +5,8 @@ import com.sedmelluq.discord.lavaplayer.tools.FriendlyException
 import com.sedmelluq.discord.lavaplayer.track.AudioPlaylist
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack
 import io.github.cferg.musicbot.data.Channels
+import io.github.cferg.musicbot.data.Configuration
+import io.github.cferg.musicbot.data.GuildRoles
 import me.aberrantfox.kjdautils.api.dsl.CommandSet
 import me.aberrantfox.kjdautils.api.dsl.arg
 import me.aberrantfox.kjdautils.api.dsl.commands
@@ -14,9 +16,14 @@ import net.dv8tion.jda.api.managers.AudioManager
 import io.github.cferg.musicbot.services.AudioPlayerService
 import io.github.cferg.musicbot.utility.AudioPlayerSendHandler
 import io.github.cferg.musicbot.services.AudioPlayerService.*
+import me.aberrantfox.kjdautils.extensions.jda.sendPrivateMessage
+import me.aberrantfox.kjdautils.internal.arguments.MemberArg
+import me.aberrantfox.kjdautils.internal.di.PersistenceService
+import net.dv8tion.jda.api.entities.Member
+import net.dv8tion.jda.api.entities.Role
 
 @CommandSet("Player")
-fun playerCommands(plugin: AudioPlayerService, channels: Channels) = commands {
+fun playerCommands(plugin: AudioPlayerService, channels: Channels, config: Configuration, persistenceService: PersistenceService) = commands {
     //TODO add add as an alias of the command with an argument
     command("Play") {
         description = "Play the song listed - If a song is already playing, it's added to a queue."
@@ -72,7 +79,6 @@ fun playerCommands(plugin: AudioPlayerService, channels: Channels) = commands {
             }else {
                 music.isPaused = true
 
-                //TODO fix long to seconds display later
                 if (music.playingTrack != null){
                     val duration: Double = (music.playingTrack.position / 100).toDouble()
                     it.respond("Paused song: ${music.playingTrack.info.title} at ${duration / 10} seconds.")
@@ -99,7 +105,6 @@ fun playerCommands(plugin: AudioPlayerService, channels: Channels) = commands {
             }else {
                 music.isPaused = false
 
-                //TODO fix long to seconds display later
                 if (music.playingTrack != null) {
                     val duration: Double = (music.playingTrack.position / 100).toDouble()
                     it.respond("Resumed song: ${music.playingTrack.info.title} from ${duration / 10} seconds.")
@@ -163,13 +168,41 @@ fun playerCommands(plugin: AudioPlayerService, channels: Channels) = commands {
     command("Mute") {
         description = "Mute bot, but keeps it playing."
         requiresGuild = true
+        expect(arg(MemberArg, true))
         execute {
-            if (previousVolume.containsKey(it.guild!!.id)) {
-                it.respond("The bot is already muted.")
-            } else {
-                previousVolume[it.guild!!.id] = plugin.player[it.guild!!.id]!!.volume
-                plugin.player[it.guild!!.id]!!.volume = 0
-                it.respond("The bot is now muted.")
+            if (it.args.component1() != null){
+                //args specifies adding a user to be blacklist from music bot commands
+                if (!config.guildConfigurations.containsKey(it.guild!!.id)){
+                    config.guildConfigurations[it.guild!!.id] = GuildRoles("", "", "", "")
+                    persistenceService.save(config)
+
+                    it.author.sendPrivateMessage("Mute role is not yet configured, please try the <setrole> <mute> <roleID> command")
+                    return@execute
+                }
+
+                val member = it.args.component1() as Member
+                val muteRole = config.guildConfigurations[it.guild!!.id]!!.muteRole
+
+                if (muteRole == ""){
+                    it.author.sendPrivateMessage("Mute role is not yet configured, please try the <setrole> <mute> <roleID> command")
+                    return@execute
+                }
+
+                if (member.roles.firstOrNull{muteRole == it.id} != null){
+                    it.author.sendPrivateMessage("${member.effectiveName} is already bot muted.")
+                }else{
+                    member.roles.add(it.guild!!.getRoleById(muteRole))
+                    it.author.sendPrivateMessage("${member.effectiveName} is now bot muted.")
+                }
+            }else {
+                //no args specifies muting the music player
+                if (previousVolume.containsKey(it.guild!!.id)) {
+                    it.respond("The bot is already muted.")
+                } else {
+                    previousVolume[it.guild!!.id] = plugin.player[it.guild!!.id]!!.volume
+                    plugin.player[it.guild!!.id]!!.volume = 0
+                    it.respond("The bot is now muted.")
+                }
             }
         }
     }
@@ -177,13 +210,40 @@ fun playerCommands(plugin: AudioPlayerService, channels: Channels) = commands {
     command("Unmute") {
         description = "Sets bot's volume back to previous level before it was muted."
         requiresGuild = true
+        expect(arg(MemberArg, true))
         execute {
-            if (previousVolume.containsKey(it.guild!!.id)) {
-                plugin.player[it.guild!!.id]!!.volume = previousVolume[it.guild!!.id]!!
-                previousVolume.remove(it.guild!!.id)
-                it.respond("The bot is now unmuted.")
-            } else {
-                it.respond("The bot is currently not muted - check the volume level.")
+            if (it.args.component1() != null){
+                if (!config.guildConfigurations.containsKey(it.guild!!.id)){
+                    config.guildConfigurations[it.guild!!.id] = GuildRoles("", "", "", "")
+                    persistenceService.save(config)
+
+                    it.author.sendPrivateMessage("Mute role is not yet configured, please try the <setrole> <mute> <roleID> command")
+                    return@execute
+                }
+
+                //args specifies adding a user to be blacklist from music bot commands
+                val member = it.args.component1() as Member
+                val muteRole = config.guildConfigurations[it.guild!!.id]!!.muteRole
+
+                if (muteRole == ""){
+                    it.author.sendPrivateMessage("Mute role is not yet configured, please try the <setrole> <mute> <roleID> command")
+                    return@execute
+                }
+
+                if (member.roles.firstOrNull{muteRole == it.id} == null){
+                    it.author.sendPrivateMessage("${member.effectiveName} is already unmuted.")
+                }else{
+                    member.roles.remove(it.guild!!.getRoleById(muteRole))
+                    it.author.sendPrivateMessage("${member.effectiveName} is now unmuted.")
+                }
+            }else {
+                if (previousVolume.containsKey(it.guild!!.id)) {
+                    plugin.player[it.guild!!.id]!!.volume = previousVolume[it.guild!!.id]!!
+                    previousVolume.remove(it.guild!!.id)
+                    it.respond("The bot is now unmuted.")
+                } else {
+                    it.respond("The bot is currently not muted - check the volume level.")
+                }
             }
         }
     }

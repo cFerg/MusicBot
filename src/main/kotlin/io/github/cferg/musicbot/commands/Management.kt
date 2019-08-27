@@ -1,22 +1,19 @@
 package io.github.cferg.musicbot.commands
 
-import io.github.cferg.musicbot.data.ChannelGroup
-import io.github.cferg.musicbot.data.VoicePair
-import io.github.cferg.musicbot.data.Channels
+import io.github.cferg.musicbot.data.*
 import me.aberrantfox.kjdautils.api.dsl.CommandSet
 import me.aberrantfox.kjdautils.api.dsl.arg
 import me.aberrantfox.kjdautils.api.dsl.commands
-import me.aberrantfox.kjdautils.internal.arguments.ChoiceArg
-import me.aberrantfox.kjdautils.internal.arguments.TextChannelArg
-import me.aberrantfox.kjdautils.internal.arguments.VoiceChannelArg
 import me.aberrantfox.kjdautils.internal.di.PersistenceService
 import net.dv8tion.jda.api.entities.TextChannel
 import net.dv8tion.jda.api.entities.VoiceChannel
 import io.github.cferg.musicbot.utility.AudioPlayerSendHandler
 import io.github.cferg.musicbot.services.AudioPlayerService
+import me.aberrantfox.kjdautils.internal.arguments.*
+import net.dv8tion.jda.api.entities.Role
 
 @CommandSet("Management")
-fun managementCommands(plugin: AudioPlayerService, channels: Channels, persistenceService: PersistenceService) = commands {
+fun managementCommands(plugin: AudioPlayerService, channels: Channels, config: Configuration, persistenceService: PersistenceService) = commands {
     //TODO consider deprecating move command - it's not always safe
     command("Move") {
         description = "Move bot to the current voice channel or to a specified voice channel via ID."
@@ -53,7 +50,7 @@ fun managementCommands(plugin: AudioPlayerService, channels: Channels, persisten
             val vc = it.args.component1() as VoiceChannel
             val tc = it.args.component2() as TextChannel
 
-            if(channels.channelGroups.containsKey(it.guild!!.id)) {
+            if (channels.channelGroups.containsKey(it.guild!!.id)) {
                 if (!channels.getVoicePair(it.guild!!.id).isNullOrEmpty()) {
                     channels.getVoicePair(it.guild!!.id).add(VoicePair(vc.id, tc.id))
                     persistenceService.save(channels)
@@ -108,33 +105,75 @@ fun managementCommands(plugin: AudioPlayerService, channels: Channels, persisten
         execute {
             val choice = it.args.component1() as String
 
-            if (choice.equals("add", ignoreCase = true) || choice.equals("set", ignoreCase = true)){
-                if (it.args.component2() is String){
+            if (choice.equals("add", ignoreCase = true) || choice.equals("set", ignoreCase = true)) {
+                if (it.args.component2() is String) {
                     it.respond("Please add a valid text channel using: \$\$Log add <TextChannelID>")
                     return@execute
                 }
 
                 val tc = it.args.component2() as TextChannel
-                if(channels.channelGroups.containsKey(it.guild!!.id)){
+                if (channels.channelGroups.containsKey(it.guild!!.id)) {
                     channels.channelGroups[it.guild!!.id]!!.loggingChannelID = tc.id
                     persistenceService.save(channels)
+
                     it.respond("Added a logging channel for voice activity.")
-                }else{
+                } else {
                     channels.channelGroups[it.guild!!.id] = ChannelGroup(tc.id, mutableListOf())
+                    persistenceService.save(channels)
+
                     it.respond("Added a logging channel for voice activity.")
                     it.respond("Please create a voice/text channel pair now, using \$\$Link <VoiceChannelID> <TextChannelID>")
                 }
-            }else if(choice.equals("remove", ignoreCase = true) || choice.equals("delete", ignoreCase = true)){
-                if(channels.channelGroups.containsKey(it.guild!!.id)){
+            } else if (choice.equals("remove", ignoreCase = true) || choice.equals("delete", ignoreCase = true)) {
+                if (channels.channelGroups.containsKey(it.guild!!.id)) {
                     channels.channelGroups[it.guild!!.id]!!.loggingChannelID = ""
                     persistenceService.save(channels)
+
                     it.respond("Logging channel successfully removed.")
-                }else{
+                } else {
                     it.respond("No channel grouping set up - You have nothing to remove.")
                 }
-            }else{
-                it.respond("Please use one of the appropriate io.github.cferg.musicbot.commands.\nFor Setting the Logging Channel\$\$Log Add/Set <TextChannelID>\nFor Removing the logging channel:\$\$Log Remove/Delete <TextChannelID>")
+            } else {
+                it.respond("Please use one of the appropriate commands.\nFor Setting the Logging Channel\$\$Log Add/Set <TextChannelID>\nFor Removing the logging channel:\$\$Log Remove/Delete <TextChannelID>")
             }
+        }
+    }
+
+    //TODO fix role arg - it isn't recognizing valid role ids
+    command("SetRole") {
+        description = "Sets the associated role function to the specified role.\n\n" +
+                "- DJ is used to play the commands.\n" +
+                "- Mute is used to blacklist player use.\n" +
+                "- Staff is for moderation commands.\n" +
+                "- Manage is for bot configurations."
+        requiresGuild = true
+        expect(ChoiceArg("DJ, Manage, Mute, Staff", "DJ", "Manage", "Mute", "Staff"), RoleArg("Role"))
+        execute {
+            if (!config.guildConfigurations.containsKey(it.guild!!.id)) {
+                config.guildConfigurations[it.guild!!.id] = GuildRoles("", "", "", "")
+                persistenceService.save(config)
+            }
+
+            val arg1 = it.args.component1() as String
+            val arg2 = it.args.component2() as Role
+
+            when (arg1.toLowerCase()) {
+                "dj" -> config.guildConfigurations[it.guild!!.id]!!.djRole = arg2.id
+                "manage" -> config.guildConfigurations[it.guild!!.id]!!.manageRole = arg2.id
+                "mute" -> config.guildConfigurations[it.guild!!.id]!!.muteRole = arg2.id
+                "staff" -> config.guildConfigurations[it.guild!!.id]!!.staffRole = arg2.id
+            }
+
+            persistenceService.save(config)
+        }
+    }
+
+    command("Prefix") {
+        description = "Sets the prefix for the bot."
+        requiresGuild = true
+        expect(CharArg)
+        execute {
+            config.prefix = it.args.component1() as String
         }
     }
 }
