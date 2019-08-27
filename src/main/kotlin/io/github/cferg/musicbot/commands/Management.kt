@@ -139,31 +139,19 @@ fun managementCommands(plugin: AudioPlayerService, channels: Channels, config: C
         }
     }
 
-    //TODO fix role arg - it isn't recognizing valid role ids
-    command("SetRole") {
-        description = "Sets the associated role function to the specified role.\n\n" +
-                "- DJ is used to play the commands.\n" +
-                "- Mute is used to blacklist player use.\n" +
-                "- Staff is for moderation commands.\n" +
-                "- Manage is for bot configurations."
+    command("SetStaff") {
+        description = "Sets a Staff role for moderation commands"
         requiresGuild = true
-        expect(ChoiceArg("DJ, Manage, Mute, Staff", "DJ", "Manage", "Mute", "Staff"), RoleArg("Role"))
+        expect(RoleArg("Role"))
         execute {
             if (!config.guildConfigurations.containsKey(it.guild!!.id)) {
-                config.guildConfigurations[it.guild!!.id] = GuildRoles("", "", "", "")
+                config.guildConfigurations[it.guild!!.id] = GuildRoles("", mutableListOf())
                 persistenceService.save(config)
             }
 
-            val arg1 = it.args.component1() as String
-            val arg2 = it.args.component2() as Role
+            val role = it.args.component1() as Role
 
-            when (arg1.toLowerCase()) {
-                "dj" -> config.guildConfigurations[it.guild!!.id]!!.djRole = arg2.id
-                "manage" -> config.guildConfigurations[it.guild!!.id]!!.manageRole = arg2.id
-                "mute" -> config.guildConfigurations[it.guild!!.id]!!.muteRole = arg2.id
-                "staff" -> config.guildConfigurations[it.guild!!.id]!!.staffRole = arg2.id
-            }
-
+            config.guildConfigurations[it.guild!!.id]!!.staffRole = role.id
             persistenceService.save(config)
         }
     }

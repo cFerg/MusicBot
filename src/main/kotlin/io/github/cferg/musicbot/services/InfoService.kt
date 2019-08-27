@@ -21,15 +21,12 @@ class InfoService(private val configuration: Configuration) {
     fun botInfo(guild: Guild) = embed {
         val self = guild.jda.selfUser
 
-        val requiredRole = configuration.guildConfigurations[guild.id]?.djRole ?: "<Not Configured>"
-
         color = Color.green
         thumbnail = self.effectiveAvatarUrl
         addField(self.fullName(), "A music bot for discord.")
         addInlineField("Author", "[$author](https://discordapp.com/users/167417801873555456/)")
         addInlineField("Version", version)
         addInlineField("Prefix", configuration.prefix)
-        addInlineField("DJ role", requiredRole)
         addInlineField("Source", source)
     }
 }

@@ -20,7 +20,6 @@ import me.aberrantfox.kjdautils.extensions.jda.sendPrivateMessage
 import me.aberrantfox.kjdautils.internal.arguments.MemberArg
 import me.aberrantfox.kjdautils.internal.di.PersistenceService
 import net.dv8tion.jda.api.entities.Member
-import net.dv8tion.jda.api.entities.Role
 
 @CommandSet("Player")
 fun playerCommands(plugin: AudioPlayerService, channels: Channels, config: Configuration, persistenceService: PersistenceService) = commands {
@@ -62,8 +61,8 @@ fun playerCommands(plugin: AudioPlayerService, channels: Channels, config: Confi
 
                     override fun loadFailed(throwable: FriendlyException) = it.respond("Error, could not load track.")
                 })
-            }else{
-                it.respond("Please join a voice channel to use this command.")
+            } else {
+                it.respond("Please join ${vc.name} to use this command in this channel.")
             }
         }
     }
@@ -74,15 +73,15 @@ fun playerCommands(plugin: AudioPlayerService, channels: Channels, config: Confi
         execute {
             val music = plugin.player[it.guild!!.id]!!
 
-            if (music.isPaused){
+            if (music.isPaused) {
                 it.respond("Player is already paused.")
-            }else {
+            } else {
                 music.isPaused = true
 
-                if (music.playingTrack != null){
+                if (music.playingTrack != null) {
                     val duration: Double = (music.playingTrack.position / 100).toDouble()
                     it.respond("Paused song: ${music.playingTrack.info.title} at ${duration / 10} seconds.")
-                }else{
+                } else {
                     it.respond("Player is paused, but no songs are currently queued.")
                 }
             }
@@ -96,19 +95,19 @@ fun playerCommands(plugin: AudioPlayerService, channels: Channels, config: Confi
         execute {
             val music = plugin.player[it.guild!!.id]!!
 
-            if (!music.isPaused){
-                if (music.playingTrack != null){
+            if (!music.isPaused) {
+                if (music.playingTrack != null) {
                     it.respond("The song is already playing.")
-                }else{
+                } else {
                     it.respond("No songs are currently queued.")
                 }
-            }else {
+            } else {
                 music.isPaused = false
 
                 if (music.playingTrack != null) {
                     val duration: Double = (music.playingTrack.position / 100).toDouble()
                     it.respond("Resumed song: ${music.playingTrack.info.title} from ${duration / 10} seconds.")
-                }else{
+                } else {
                     it.respond("Player is resumed, but no songs are currently queued.")
                 }
             }
@@ -124,12 +123,12 @@ fun playerCommands(plugin: AudioPlayerService, channels: Channels, config: Confi
             if (plugin.songQueue.isNullOrEmpty()) {
                 it.respond("No songs currently queued.")
             } else {
-                if (plugin.player[it.guild!!.id]!!.playingTrack != null){
+                if (plugin.player[it.guild!!.id]!!.playingTrack != null) {
                     if (it.author.discriminator == plugin.songQueue[it.guild!!.id]!![0].memberID)
 
-                    it.respond("Skipped song: ${plugin.player[it.guild!!.id]!!.playingTrack.info.title} by ${plugin.player[it.guild!!.id]!!.playingTrack.info.author}")
+                        it.respond("Skipped song: ${plugin.player[it.guild!!.id]!!.playingTrack.info.title} by ${plugin.player[it.guild!!.id]!!.playingTrack.info.author}")
                     plugin.startNextTrack(it.guild!!.id, false)
-                }else{
+                } else {
                     it.respond("No songs currently queued.")
                 }
             }
@@ -170,39 +169,12 @@ fun playerCommands(plugin: AudioPlayerService, channels: Channels, config: Confi
         requiresGuild = true
         expect(arg(MemberArg, true))
         execute {
-            if (it.args.component1() != null){
-                //args specifies adding a user to be blacklist from music bot commands
-                if (!config.guildConfigurations.containsKey(it.guild!!.id)){
-                    config.guildConfigurations[it.guild!!.id] = GuildRoles("", "", "", "")
-                    persistenceService.save(config)
-
-                    it.author.sendPrivateMessage("Mute role is not yet configured, please try the <setrole> <mute> <roleID> command")
-                    return@execute
-                }
-
-                val member = it.args.component1() as Member
-                val muteRole = config.guildConfigurations[it.guild!!.id]!!.muteRole
-
-                if (muteRole == ""){
-                    it.author.sendPrivateMessage("Mute role is not yet configured, please try the <setrole> <mute> <roleID> command")
-                    return@execute
-                }
-
-                if (member.roles.firstOrNull{muteRole == it.id} != null){
-                    it.author.sendPrivateMessage("${member.effectiveName} is already bot muted.")
-                }else{
-                    member.roles.add(it.guild!!.getRoleById(muteRole))
-                    it.author.sendPrivateMessage("${member.effectiveName} is now bot muted.")
-                }
-            }else {
-                //no args specifies muting the music player
-                if (previousVolume.containsKey(it.guild!!.id)) {
-                    it.respond("The bot is already muted.")
-                } else {
-                    previousVolume[it.guild!!.id] = plugin.player[it.guild!!.id]!!.volume
-                    plugin.player[it.guild!!.id]!!.volume = 0
-                    it.respond("The bot is now muted.")
-                }
+            if (previousVolume.containsKey(it.guild!!.id)) {
+                it.respond("The bot is already muted.")
+            } else {
+                previousVolume[it.guild!!.id] = plugin.player[it.guild!!.id]!!.volume
+                plugin.player[it.guild!!.id]!!.volume = 0
+                it.respond("The bot is now muted.")
             }
         }
     }
@@ -212,38 +184,60 @@ fun playerCommands(plugin: AudioPlayerService, channels: Channels, config: Confi
         requiresGuild = true
         expect(arg(MemberArg, true))
         execute {
-            if (it.args.component1() != null){
-                if (!config.guildConfigurations.containsKey(it.guild!!.id)){
-                    config.guildConfigurations[it.guild!!.id] = GuildRoles("", "", "", "")
-                    persistenceService.save(config)
+            if (previousVolume.containsKey(it.guild!!.id)) {
+                plugin.player[it.guild!!.id]!!.volume = previousVolume[it.guild!!.id]!!
+                previousVolume.remove(it.guild!!.id)
+                it.respond("The bot is now unmuted.")
+            } else {
+                it.respond("The bot is currently not muted - check the volume level.")
+            }
+        }
+    }
 
-                    it.author.sendPrivateMessage("Mute role is not yet configured, please try the <setrole> <mute> <roleID> command")
-                    return@execute
-                }
+    command("Ignore") {
+        description = "Add the member to a bot blacklist."
+        requiresGuild = true
+        expect(arg(MemberArg, false))
+        execute {
+            if (!config.guildConfigurations.containsKey(it.guild!!.id)) {
+                config.guildConfigurations[it.guild!!.id] = GuildRoles("", mutableListOf())
+                persistenceService.save(config)
+            }
 
-                //args specifies adding a user to be blacklist from music bot commands
-                val member = it.args.component1() as Member
-                val muteRole = config.guildConfigurations[it.guild!!.id]!!.muteRole
+            val member = it.args.component1() as Member
 
-                if (muteRole == ""){
-                    it.author.sendPrivateMessage("Mute role is not yet configured, please try the <setrole> <mute> <roleID> command")
-                    return@execute
-                }
+            if (config.guildConfigurations[it.guild!!.id]!!.ignoreList.contains(member.id)) {
+                it.author.sendPrivateMessage("${member.effectiveName} is already in the bot blacklist.")
+                return@execute
+            }
 
-                if (member.roles.firstOrNull{muteRole == it.id} == null){
-                    it.author.sendPrivateMessage("${member.effectiveName} is already unmuted.")
-                }else{
-                    member.roles.remove(it.guild!!.getRoleById(muteRole))
-                    it.author.sendPrivateMessage("${member.effectiveName} is now unmuted.")
-                }
-            }else {
-                if (previousVolume.containsKey(it.guild!!.id)) {
-                    plugin.player[it.guild!!.id]!!.volume = previousVolume[it.guild!!.id]!!
-                    previousVolume.remove(it.guild!!.id)
-                    it.respond("The bot is now unmuted.")
-                } else {
-                    it.respond("The bot is currently not muted - check the volume level.")
-                }
+            config.guildConfigurations[it.guild!!.id]!!.ignoreList.add(member.id)
+            persistenceService.save(config)
+            it.author.sendPrivateMessage("${member.effectiveName} is now added to the bot blacklist.")
+        }
+    }
+
+    command("Unignore") {
+        description = "Removes the member from a bot blacklist."
+        requiresGuild = true
+        expect(arg(MemberArg, false))
+        execute {
+            if (!config.guildConfigurations.containsKey(it.guild!!.id)) {
+                config.guildConfigurations[it.guild!!.id] = GuildRoles("", mutableListOf())
+                persistenceService.save(config)
+                return@execute
+            }
+
+            val member = it.args.component1() as Member
+
+            if (config.guildConfigurations[it.guild!!.id]!!.ignoreList.contains(member.id)) {
+                config.guildConfigurations[it.guild!!.id]!!.ignoreList.remove(member.id)
+                persistenceService.save(config)
+                it.author.sendPrivateMessage("${member.effectiveName} is now removed from the bot blacklist.")
+                return@execute
+            } else {
+                it.author.sendPrivateMessage("${member.effectiveName} is not currently in the bot blacklist.")
+                return@execute
             }
         }
     }
