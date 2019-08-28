@@ -25,11 +25,6 @@ fun managementCommands(plugin: AudioPlayerService, config: Configuration, persis
         requiresGuild = true
         expect(RoleArg("Role"))
         execute {
-            if (!config.guildConfigurations.containsKey(it.guild!!.id)) {
-                config.guildConfigurations[it.guild!!.id] = GuildInfo("", "", mutableListOf())
-                persistenceService.save(config)
-            }
-
             val role = it.args.component1() as Role
 
             config.guildConfigurations[it.guild!!.id]!!.staffRole = role.id

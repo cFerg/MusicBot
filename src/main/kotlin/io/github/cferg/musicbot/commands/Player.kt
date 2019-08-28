@@ -109,7 +109,6 @@ fun playerCommands(plugin: AudioPlayerService, config: Configuration, persistenc
     }
 
     //TODO add next as an alias
-    //TODO person who queued the song can skip only or staff
     command("Skip") {
         description = "Skips the current song."
         requiresGuild = true
@@ -118,10 +117,14 @@ fun playerCommands(plugin: AudioPlayerService, config: Configuration, persistenc
                 it.respond("No songs currently queued.")
             } else {
                 if (plugin.player[it.guild!!.id]!!.playingTrack != null) {
-                    if (it.author.discriminator == plugin.songQueue[it.guild!!.id]!![0].memberID)
-
+                    if (it.author.discriminator == plugin.currentSong[it.guild!!.id]?.memberID
+                            || it.author.toMember(it.guild!!)!!.roles.firstOrNull
+                            { role -> role.id ==  config.guildConfigurations[role.guild.id]!!.staffRole } != null){
                         it.respond("Skipped song: ${plugin.player[it.guild!!.id]!!.playingTrack.info.title} by ${plugin.player[it.guild!!.id]!!.playingTrack.info.author}")
-                    plugin.startNextTrack(it.guild!!.id, false)
+                        plugin.startNextTrack(it.guild!!.id, false)
+                    }else{
+                        it.respond("Sorry, only the person who queued the song or staff can skip.")
+                    }
                 } else {
                     it.respond("No songs currently queued.")
                 }
@@ -193,11 +196,6 @@ fun playerCommands(plugin: AudioPlayerService, config: Configuration, persistenc
         requiresGuild = true
         expect(arg(MemberArg, false))
         execute {
-            if (!config.guildConfigurations.containsKey(it.guild!!.id)) {
-                config.guildConfigurations[it.guild!!.id] = GuildInfo("", "", mutableListOf())
-                persistenceService.save(config)
-            }
-
             val member = it.args.component1() as Member
 
             if (config.guildConfigurations[it.guild!!.id]!!.ignoreList.contains(member.id)) {
@@ -216,12 +214,6 @@ fun playerCommands(plugin: AudioPlayerService, config: Configuration, persistenc
         requiresGuild = true
         expect(arg(MemberArg, false))
         execute {
-            if (!config.guildConfigurations.containsKey(it.guild!!.id)) {
-                config.guildConfigurations[it.guild!!.id] = GuildInfo("", "", mutableListOf())
-                persistenceService.save(config)
-                return@execute
-            }
-
             val member = it.args.component1() as Member
 
             if (config.guildConfigurations[it.guild!!.id]!!.ignoreList.contains(member.id)) {
