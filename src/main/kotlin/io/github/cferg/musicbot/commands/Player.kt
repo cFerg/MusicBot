@@ -5,7 +5,7 @@ import com.sedmelluq.discord.lavaplayer.tools.FriendlyException
 import com.sedmelluq.discord.lavaplayer.track.AudioPlaylist
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack
 import io.github.cferg.musicbot.data.Configuration
-import io.github.cferg.musicbot.data.GuildInfo
+import io.github.cferg.musicbot.extensions.toTimeString
 import me.aberrantfox.kjdautils.api.dsl.CommandSet
 import me.aberrantfox.kjdautils.api.dsl.arg
 import me.aberrantfox.kjdautils.api.dsl.commands
@@ -17,6 +17,7 @@ import io.github.cferg.musicbot.utility.AudioPlayerSendHandler
 import io.github.cferg.musicbot.services.AudioPlayerService.*
 import me.aberrantfox.kjdautils.extensions.jda.sendPrivateMessage
 import me.aberrantfox.kjdautils.extensions.jda.toMember
+import me.aberrantfox.kjdautils.extensions.stdlib.convertToTimeString
 import me.aberrantfox.kjdautils.internal.arguments.MemberArg
 import me.aberrantfox.kjdautils.internal.di.PersistenceService
 import net.dv8tion.jda.api.entities.Member
@@ -41,7 +42,7 @@ fun playerCommands(plugin: AudioPlayerService, config: Configuration, persistenc
             plugin.playerManager[guild.id]!!.loadItem(url, object : AudioLoadResultHandler {
                 override fun trackLoaded(track: AudioTrack) {
                     //TODO add track length check
-                    plugin.queueAdd(guild.id, Song(track, it.author.discriminator))
+                    plugin.queueAdd(guild.id, Song(track, it.author.id))
                     it.respond("Added song: ${track.info.title} by ${track.info.author}")
                 }
 
@@ -73,8 +74,8 @@ fun playerCommands(plugin: AudioPlayerService, config: Configuration, persistenc
                 music.isPaused = true
 
                 if (music.playingTrack != null) {
-                    val duration: Double = (music.playingTrack.position / 100).toDouble()
-                    it.respond("Paused song: ${music.playingTrack.info.title} at ${duration / 10} seconds.")
+                    val duration = music.playingTrack.position.toTimeString()
+                    it.respond("Paused song: ${music.playingTrack.info.title} at $duration")
                 } else {
                     it.respond("Player is paused, but no songs are currently queued.")
                 }
@@ -99,8 +100,8 @@ fun playerCommands(plugin: AudioPlayerService, config: Configuration, persistenc
                 music.isPaused = false
 
                 if (music.playingTrack != null) {
-                    val duration: Double = (music.playingTrack.position / 100).toDouble()
-                    it.respond("Resumed song: ${music.playingTrack.info.title} from ${duration / 10} seconds.")
+                    val duration = music.playingTrack.position.convertToTimeString()
+                    it.respond("Resumed song: ${music.playingTrack.info.title} at $duration")
                 } else {
                     it.respond("Player is resumed, but no songs are currently queued.")
                 }
@@ -113,22 +114,24 @@ fun playerCommands(plugin: AudioPlayerService, config: Configuration, persistenc
         description = "Skips the current song."
         requiresGuild = true
         execute {
-            if (plugin.songQueue.isNullOrEmpty()) {
-                it.respond("No songs currently queued.")
-            } else {
-                if (plugin.player[it.guild!!.id]!!.playingTrack != null) {
-                    if (it.author.discriminator == plugin.currentSong[it.guild!!.id]?.memberID
-                            || it.author.toMember(it.guild!!)!!.roles.firstOrNull
-                            { role -> role.id ==  config.guildConfigurations[role.guild.id]!!.staffRole } != null){
-                        it.respond("Skipped song: ${plugin.player[it.guild!!.id]!!.playingTrack.info.title} by ${plugin.player[it.guild!!.id]!!.playingTrack.info.author}")
-                        plugin.startNextTrack(it.guild!!.id, false)
-                    }else{
-                        it.respond("Sorry, only the person who queued the song or staff can skip.")
-                    }
-                } else {
-                    it.respond("No songs currently queued.")
-                }
-            }
+            if (plugin.songQueue.isNullOrEmpty())
+                return@execute it.respond("No songs currently queued.")
+
+            val guild = it.guild!!
+            val member = it.author.toMember(guild)!!
+            val staffRole = config.guildConfigurations[guild.id]!!.staffRole
+
+            val playingTrack = plugin.player[guild.id]?.playingTrack?.info
+                    ?: return@execute it.respond("No songs currently queued.")
+
+            val queuedSong = it.author.id == plugin.currentSong[guild.id]?.memberID
+            val isStaff = member.roles.any { it.id == staffRole }
+
+            if (!queuedSong && !isStaff)
+                return@execute it.respond("Sorry, only the person who queued the song or staff can skip.")
+
+            plugin.startNextTrack(guild.id, false)
+            it.respond("Skipped song: ${playingTrack.title} by ${playingTrack.author}")
         }
     }
 

@@ -6,10 +6,11 @@ import com.sedmelluq.discord.lavaplayer.tools.FriendlyException
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackEndReason
 import me.aberrantfox.kjdautils.api.annotation.Service
+import me.aberrantfox.kjdautils.discord.Discord
 
 @Service
-class AudioEventService(private val plugin: AudioPlayerService) : AudioEventAdapter() {
-    var guildID: String = ""
+class AudioEventService(private val plugin: AudioPlayerService, private val embeds: EmbedTrackListService, private val discord: Discord) : AudioEventAdapter() {
+    var guildID = ""
 
     init {
         for (i in plugin.audioEventService){
@@ -39,6 +40,7 @@ class AudioEventService(private val plugin: AudioPlayerService) : AudioEventAdap
         if (endReason.mayStartNext || endReason == AudioTrackEndReason.FINISHED) {
             println("Track End Trigger")
             plugin.startNextTrack(guildID, true)
+            discord.jda.getGuildById(guildID)?.let { embeds.updateDisplay(it) }
         }
     }
 

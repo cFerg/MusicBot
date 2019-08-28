@@ -30,7 +30,7 @@ class AudioPlayerService(discord: Discord, config: Configuration, persistenceSer
 
             player[id] = playerManager[id]!!.createPlayer()
             player[id]!!.volume = 30
-            audioEventService[id] = AudioEventService(this)
+            audioEventService[id] = AudioEventService(this, EmbedTrackListService(this), discord)
             player[id]!!.addListener(audioEventService[id])
 
             if (config.guildConfigurations[id] == null) {
