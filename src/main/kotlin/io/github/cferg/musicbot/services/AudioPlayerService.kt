@@ -41,8 +41,7 @@ class AudioPlayerService(discord: Discord, config: Configuration, persistenceSer
     }
 
     fun queueAdd(guildID: String, song: Song) {
-        if (player[guildID]!!.playingTrack == null){
-            player[guildID]!!.startTrack(song.track, true)
+        if (player[guildID]!!.startTrack(song.track, true)){
             currentSong[guildID] = song
         }else{
             songQueue[guildID]!!.add(song)
