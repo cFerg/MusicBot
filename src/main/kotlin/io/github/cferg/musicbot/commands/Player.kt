@@ -4,9 +4,8 @@ import com.sedmelluq.discord.lavaplayer.player.AudioLoadResultHandler
 import com.sedmelluq.discord.lavaplayer.tools.FriendlyException
 import com.sedmelluq.discord.lavaplayer.track.AudioPlaylist
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack
-import io.github.cferg.musicbot.data.Channels
 import io.github.cferg.musicbot.data.Configuration
-import io.github.cferg.musicbot.data.GuildRoles
+import io.github.cferg.musicbot.data.GuildInfo
 import me.aberrantfox.kjdautils.api.dsl.CommandSet
 import me.aberrantfox.kjdautils.api.dsl.arg
 import me.aberrantfox.kjdautils.api.dsl.commands
@@ -17,12 +16,13 @@ import io.github.cferg.musicbot.services.AudioPlayerService
 import io.github.cferg.musicbot.utility.AudioPlayerSendHandler
 import io.github.cferg.musicbot.services.AudioPlayerService.*
 import me.aberrantfox.kjdautils.extensions.jda.sendPrivateMessage
+import me.aberrantfox.kjdautils.extensions.jda.toMember
 import me.aberrantfox.kjdautils.internal.arguments.MemberArg
 import me.aberrantfox.kjdautils.internal.di.PersistenceService
 import net.dv8tion.jda.api.entities.Member
 
 @CommandSet("Player")
-fun playerCommands(plugin: AudioPlayerService, channels: Channels, config: Configuration, persistenceService: PersistenceService) = commands {
+fun playerCommands(plugin: AudioPlayerService, config: Configuration, persistenceService: PersistenceService) = commands {
     //TODO add add as an alias of the command with an argument
     command("Play") {
         description = "Play the song listed - If a song is already playing, it's added to a queue."
@@ -31,39 +31,33 @@ fun playerCommands(plugin: AudioPlayerService, channels: Channels, config: Confi
         execute {
             val url = it.args.component1() as String
             val guild = it.guild!!
-            val vc = guild.getVoiceChannelById(channels.getVoiceChannel(guild.id, it.channel.id))
+            val vc = it.author.toMember(guild)!!.voiceState?.channel
+                    ?: return@execute it.respond("Please join a voice channel to use this command.")
 
-            //TODO add configurable queue limit per member
-            val authorID = it.author.id
+            val am: AudioManager = guild.audioManager
+            am.sendingHandler = AudioPlayerSendHandler(plugin.player[guild.id]!!)
+            am.openAudioConnection(vc)
 
-            if (vc!!.members.firstOrNull { it.user.id == authorID } != null) {
-                val am: AudioManager = guild.audioManager
-                am.sendingHandler = AudioPlayerSendHandler(plugin.player[guild.id]!!)
-                am.openAudioConnection(vc)
+            plugin.playerManager[guild.id]!!.loadItem(url, object : AudioLoadResultHandler {
+                override fun trackLoaded(track: AudioTrack) {
+                    //TODO add track length check
+                    plugin.queueAdd(guild.id, Song(track, it.author.discriminator))
+                    it.respond("Added song: ${track.info.title} by ${track.info.author}")
+                }
 
-                plugin.playerManager[guild.id]!!.loadItem(url, object : AudioLoadResultHandler {
-                    override fun trackLoaded(track: AudioTrack) {
-                        //TODO add track length check
+                override fun playlistLoaded(playlist: AudioPlaylist) {
+                    //TODO add permission check for individuals to play playlists
+                    //TODO add track length check - using configurable minimum and max range
+                    for (track in playlist.tracks) {
                         plugin.queueAdd(guild.id, Song(track, it.author.discriminator))
                         it.respond("Added song: ${track.info.title} by ${track.info.author}")
                     }
+                }
 
-                    override fun playlistLoaded(playlist: AudioPlaylist) {
-                        //TODO add permission check for individuals to play playlists
-                        //TODO add track length check - using configurable minimum and max range
-                        for (track in playlist.tracks) {
-                            plugin.queueAdd(guild.id, Song(track, it.author.discriminator))
-                            it.respond("Added song: ${track.info.title} by ${track.info.author}")
-                        }
-                    }
+                override fun noMatches() = it.respond("No matching song found")
 
-                    override fun noMatches() = it.respond("No matching song found")
-
-                    override fun loadFailed(throwable: FriendlyException) = it.respond("Error, could not load track.")
-                })
-            } else {
-                it.respond("Please join ${vc.name} to use this command in this channel.")
-            }
+                override fun loadFailed(throwable: FriendlyException) = it.respond("Error, could not load track.")
+            })
         }
     }
 
@@ -200,7 +194,7 @@ fun playerCommands(plugin: AudioPlayerService, channels: Channels, config: Confi
         expect(arg(MemberArg, false))
         execute {
             if (!config.guildConfigurations.containsKey(it.guild!!.id)) {
-                config.guildConfigurations[it.guild!!.id] = GuildRoles("", mutableListOf())
+                config.guildConfigurations[it.guild!!.id] = GuildInfo("", "", mutableListOf())
                 persistenceService.save(config)
             }
 
@@ -223,7 +217,7 @@ fun playerCommands(plugin: AudioPlayerService, channels: Channels, config: Confi
         expect(arg(MemberArg, false))
         execute {
             if (!config.guildConfigurations.containsKey(it.guild!!.id)) {
-                config.guildConfigurations[it.guild!!.id] = GuildRoles("", mutableListOf())
+                config.guildConfigurations[it.guild!!.id] = GuildInfo("", "", mutableListOf())
                 persistenceService.save(config)
                 return@execute
             }
@@ -234,10 +228,8 @@ fun playerCommands(plugin: AudioPlayerService, channels: Channels, config: Confi
                 config.guildConfigurations[it.guild!!.id]!!.ignoreList.remove(member.id)
                 persistenceService.save(config)
                 it.author.sendPrivateMessage("${member.effectiveName} is now removed from the bot blacklist.")
-                return@execute
             } else {
                 it.author.sendPrivateMessage("${member.effectiveName} is not currently in the bot blacklist.")
-                return@execute
             }
         }
     }

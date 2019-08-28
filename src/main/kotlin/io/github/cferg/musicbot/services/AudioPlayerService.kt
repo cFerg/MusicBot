@@ -5,30 +5,28 @@ import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager
 import com.sedmelluq.discord.lavaplayer.player.DefaultAudioPlayerManager
 import com.sedmelluq.discord.lavaplayer.source.AudioSourceManagers
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack
-import io.github.cferg.musicbot.data.Channels
 import me.aberrantfox.kjdautils.api.annotation.Service
 import me.aberrantfox.kjdautils.discord.Discord
-import net.dv8tion.jda.api.entities.Role
 
 @Service
-class AudioPlayerService(channels: Channels) {
+class AudioPlayerService(discord: Discord) {
     var songQueue: MutableMap<String, MutableList<Song>> = mutableMapOf()
     var playerManager: MutableMap<String, AudioPlayerManager> = mutableMapOf()
     var player: MutableMap<String, AudioPlayer> = mutableMapOf()
     var audioEventService: MutableMap<String, AudioEventService> = mutableMapOf()
 
     init {
-        for (i in channels.channelGroups) {
-            songQueue[i.key] = ArrayList()
-            playerManager[i.key] = DefaultAudioPlayerManager()
+        discord.jda.guilds.map { it.id }.forEach { id ->
+            songQueue[id] = ArrayList()
+            playerManager[id] = DefaultAudioPlayerManager()
 
-            AudioSourceManagers.registerRemoteSources(playerManager[i.key])
-            AudioSourceManagers.registerLocalSource(playerManager[i.key])
+            AudioSourceManagers.registerRemoteSources(playerManager[id])
+            AudioSourceManagers.registerLocalSource(playerManager[id])
 
-            player[i.key] = playerManager[i.key]!!.createPlayer()
-            player[i.key]!!.volume = 30
-            audioEventService[i.key] = AudioEventService(this)
-            player[i.key]!!.addListener(audioEventService[i.key])
+            player[id] = playerManager[id]!!.createPlayer()
+            player[id]!!.volume = 30
+            audioEventService[id] = AudioEventService(this)
+            player[id]!!.addListener(audioEventService[id])
         }
     }
 
