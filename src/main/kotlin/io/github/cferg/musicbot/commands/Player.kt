@@ -15,6 +15,7 @@ import net.dv8tion.jda.api.managers.AudioManager
 import io.github.cferg.musicbot.services.AudioPlayerService
 import io.github.cferg.musicbot.utility.AudioPlayerSendHandler
 import io.github.cferg.musicbot.services.AudioPlayerService.*
+import io.github.cferg.musicbot.services.EmbedTrackListService
 import me.aberrantfox.kjdautils.extensions.jda.sendPrivateMessage
 import me.aberrantfox.kjdautils.extensions.jda.toMember
 import me.aberrantfox.kjdautils.extensions.stdlib.convertToTimeString
@@ -23,7 +24,7 @@ import me.aberrantfox.kjdautils.internal.di.PersistenceService
 import net.dv8tion.jda.api.entities.Member
 
 @CommandSet("Player")
-fun playerCommands(plugin: AudioPlayerService, config: Configuration, persistenceService: PersistenceService) = commands {
+fun playerCommands(plugin: AudioPlayerService, config: Configuration, persistenceService: PersistenceService, embed: EmbedTrackListService) = commands {
     //TODO add add as an alias of the command with an argument
     command("Play") {
         description = "Play the song listed - If a song is already playing, it's added to a queue."
@@ -35,23 +36,19 @@ fun playerCommands(plugin: AudioPlayerService, config: Configuration, persistenc
             val vc = it.author.toMember(guild)!!.voiceState?.channel
                     ?: return@execute it.respond("Please join a voice channel to use this command.")
 
-            val am: AudioManager = guild.audioManager
-            am.sendingHandler = AudioPlayerSendHandler(plugin.player[guild.id]!!)
-            am.openAudioConnection(vc)
+            plugin.audioManagers[guild.id]!!.openAudioConnection(vc)
 
             plugin.playerManager[guild.id]!!.loadItem(url, object : AudioLoadResultHandler {
                 override fun trackLoaded(track: AudioTrack) {
                     //TODO add track length check
-                    plugin.queueAdd(guild.id, Song(track, it.author.id))
-                    it.respond("Added song: ${track.info.title} by ${track.info.author}")
+                    plugin.queueAdd(guild.id, Song(track, it.author.id, guild.id, it.channel.id))
                 }
 
                 override fun playlistLoaded(playlist: AudioPlaylist) {
                     //TODO add permission check for individuals to play playlists
                     //TODO add track length check - using configurable minimum and max range
                     for (track in playlist.tracks) {
-                        plugin.queueAdd(guild.id, Song(track, it.author.discriminator))
-                        it.respond("Added song: ${track.info.title} by ${track.info.author}")
+                        plugin.queueAdd(guild.id, Song(track, it.author.id, guild.id, it.channel.id))
                     }
                 }
 
@@ -100,8 +97,8 @@ fun playerCommands(plugin: AudioPlayerService, config: Configuration, persistenc
                 music.isPaused = false
 
                 if (music.playingTrack != null) {
-                    val duration = music.playingTrack.position.convertToTimeString()
-                    it.respond("Resumed song: ${music.playingTrack.info.title} at $duration")
+                    val duration = music.playingTrack.position.toTimeString()
+                    it.respond("Resumed song: ${music.playingTrack.info.title} from $duration")
                 } else {
                     it.respond("Player is resumed, but no songs are currently queued.")
                 }
@@ -226,6 +223,13 @@ fun playerCommands(plugin: AudioPlayerService, config: Configuration, persistenc
             } else {
                 it.author.sendPrivateMessage("${member.effectiveName} is not currently in the bot blacklist.")
             }
+        }
+    }
+
+    command("Display") {
+        description = "Displays the current track."
+        execute {
+            it.respond(embed.updateDisplay(it.guild!!, plugin))
         }
     }
 }

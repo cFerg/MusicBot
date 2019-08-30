@@ -20,8 +20,8 @@ val playerOffImage = arrayOf(
 )
 
 @Service
-class EmbedTrackListService(private val player: AudioPlayerService){
-    fun updateDisplay(guild: Guild) = embed {
+class EmbedTrackListService{
+    fun updateDisplay(guild: Guild, player: AudioPlayerService) = embed {
         color = Color.CYAN
         val track = player.currentSong[guild.id]?.track!!.info
         val display = if (track != null) {

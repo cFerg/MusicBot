@@ -13,8 +13,8 @@ class AudioEventService(private val plugin: AudioPlayerService, private val embe
     var guildID = ""
 
     init {
-        for (i in plugin.audioEventService){
-            if (i.value == this){
+        for (i in plugin.audioEventService) {
+            if (i.value == this) {
                 guildID = i.key
                 break
             }
@@ -33,14 +33,18 @@ class AudioEventService(private val plugin: AudioPlayerService, private val embe
 
     override fun onTrackStart(player: AudioPlayer, track: AudioTrack) {
         println("Track Start Trigger")
+
+        val guildID = plugin.currentGuild[track.identifier]!!
+
+        discord.jda.getTextChannelById(plugin.currentSong[guildID]!!.channelSent)?.sendMessage(embeds.updateDisplay(discord.jda.getGuildById(guildID)!!, plugin))?.queue()
         //currentChannel?.sendMessage("${track.info.title} started playing.")?.queue()
     }
 
     override fun onTrackEnd(player: AudioPlayer, track: AudioTrack, endReason: AudioTrackEndReason) {
         if (endReason.mayStartNext || endReason == AudioTrackEndReason.FINISHED) {
             println("Track End Trigger")
+
             plugin.startNextTrack(guildID, true)
-            discord.jda.getGuildById(guildID)?.let { embeds.updateDisplay(it) }
         }
     }
 

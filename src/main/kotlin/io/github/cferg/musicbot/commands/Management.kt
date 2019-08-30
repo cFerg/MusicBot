@@ -14,7 +14,7 @@ fun managementCommands(plugin: AudioPlayerService, config: Configuration, persis
         description = "Remove the bot from its current voice channel."
         requiresGuild = true
         execute {
-            val manager = it.guild!!.audioManager
+            val manager = plugin.audioManagers[it.guild!!.id]!!
             plugin.player[it.guild!!.id]!!.stopTrack()
             manager.closeAudioConnection()
         }
