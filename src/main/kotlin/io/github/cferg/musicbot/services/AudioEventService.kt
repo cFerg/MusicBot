@@ -38,6 +38,6 @@ class AudioEventService(private val plugin: AudioPlayerService) : AudioEventAdap
 
     override fun onTrackStuck(player: AudioPlayer, track: AudioTrack, thresholdMs: Long) {
         //currentChannel?.sendMessage("${track.info.title} is stuck - Skipping the song!")?.queue()
-        plugin.startNextTrack(plugin.guildQueue[track.identifier]!!, false)
+        plugin.startNextTrack(plugin.currentGuild[track.identifier]!!, false)
     }
 }
