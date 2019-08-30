@@ -16,8 +16,8 @@
 | Commands | Arguments       | Description                                                                 |
 | -------- | --------------- | --------------------------------------------------------------------------- |
 | Clear    | <none>          | Removes all currently queued songs.                                         |
-| Display  | <none>          | Displays the current track.                                                 |
 | Ignore   | Member          | Add the member to a bot blacklist.                                          |
+| List     | <none>          | Lists the current songs.                                                    |
 | Mute     | (Member)        | Mute bot, but keeps it playing.                                             |
 | Pause    | <none>          | Pauses the current song.                                                    |
 | Play     | URL             | Play the song listed - If a song is already playing, it's added to a queue. |

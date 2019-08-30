@@ -93,7 +93,7 @@ class AudioPlayerService(private val discord: Discord, config: Configuration, pe
         } else {
             println("null trigger")
             player[guildID]!!.stopTrack()
-            discord.jda.getTextChannelById(lastChannel[guildID]!!)!!.sendMessage(embeds.noSong(discord.jda.getGuildById(guildID)!!)).queue()
+            discord.jda.getTextChannelById(lastChannel[guildID]!!)!!.sendMessage(embeds.noSong()).queue()
         }
     }
 }

@@ -26,11 +26,11 @@ class EmbedTrackListService{
         val track = player.currentSong[guild.id]?.track
         val playStatus = player.player[guild.id]!!.playingTrack
 
-        addField("Current Song:", if (track != null) {
-            "-    Song: ${track.info.title}\n" +
-            "-    Artist: ${track.info.author}\n" +
-            "-    Duration: ${track.duration.toTimeString()}\n" +
-            "-    Queued by: ${guild.getMemberById(player.currentSong[guild.id]!!.memberID)?.asMention}"
+        addField("Now Playing:", if (track != null) {
+            "-    **Song**: [${track.info.title}](${track.info.uri})\n" +
+            "-    **Artist**: ${track.info.author}\n" +
+            "-    **Duration**: ${track.duration.toTimeString()}\n" +
+            "-    **Queued by**: ${guild.getMemberById(player.currentSong[guild.id]!!.memberID)?.asMention}"
         } else {
             "No song currently queued."
         })
@@ -38,26 +38,28 @@ class EmbedTrackListService{
         color = if (playStatus != null) Color.CYAN else Color.RED
         thumbnail = if (playStatus != null) playerOnImage.random() else playerOffImage.random()
 
-        if (player.songQueue[guild.id] != null){
+        if (!player.songQueue[guild.id].isNullOrEmpty()){
+            addField("", "__**Next Songs:**__")
             player.songQueue[guild.id]!!.forEachIndexed { index, song ->
-                addField("${index + 1}) ${song.track.info.title}",
-                        "-    Artist: ${song.track.info.author}\n" +
-                        "-    Duration: ${song.track.duration.toTimeString()}\n" +
-                        "-    Queued by: ${guild.getMemberById(song.memberID)?.asMention}")
+                addField("",
+                        "${index + 1}) [${song.track.info.title}](${song.track.info.uri})\n" +
+                        "-    **Artist**: ${song.track.info.author}\n" +
+                        "-    **Duration**: ${song.track.duration.toTimeString()}\n" +
+                        "-    **Queued by**: ${guild.getMemberById(song.memberID)?.asMention}")
             }
         }
     }
 
     fun addSong(guild: Guild, memberID: String, track: AudioTrack) = embed{
-        addField("Added a new song:",
-                "-    Song: ${track.info.title}\n" +
-                "-    Artist: ${track.info.author}\n" +
-                "-    Duration: ${track.duration.toTimeString()}\n" +
-                "-    Queued by: ${guild.getMemberById(memberID)?.asMention}")
+        addField("**Added a new song:**",
+                "-    **Song**: [${track.info.title}](${track.info.uri})\n" +
+                "-    **Artist**: ${track.info.author}\n" +
+                "-    **Duration**: ${track.duration.toTimeString()}\n" +
+                "-    **Queued** by: ${guild.getMemberById(memberID)?.asMention}")
         color = Color.green
     }
 
-    fun noSong(guild: Guild) = embed{
+    fun noSong() = embed{
         addField("There are no more songs currently in the queue.",
                 "If you would like to add a song type:\n" +
                         "\$\$Play <Song URL>")

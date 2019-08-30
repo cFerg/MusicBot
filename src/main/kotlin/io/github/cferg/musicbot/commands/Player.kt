@@ -35,7 +35,7 @@ fun playerCommands(plugin: AudioPlayerService, config: Configuration, persistenc
 
             plugin.audioManagers[guild.id]?.openAudioConnection(vc)
 
-            plugin.playerManager[guild.id]!!.loadItem(url, object : AudioLoadResultHandler {
+            plugin.playerManager[guild.id]?.loadItem(url, object : AudioLoadResultHandler {
                 override fun trackLoaded(track: AudioTrack) {
                     //TODO add track length check
                     plugin.queueAdd(guild.id, Song(track, it.author.id, guild.id, it.channel.id))
@@ -53,6 +53,8 @@ fun playerCommands(plugin: AudioPlayerService, config: Configuration, persistenc
 
                 override fun loadFailed(throwable: FriendlyException) = it.respond("Error, could not load track.")
             })
+
+            it.message.delete().queue()
         }
     }
 
@@ -223,8 +225,9 @@ fun playerCommands(plugin: AudioPlayerService, config: Configuration, persistenc
         }
     }
 
-    command("Display") {
-        description = "Displays the current track."
+    command("List") {
+        description = "Lists the current songs."
+        requiresGuild = true
         execute {
             it.respond(embed.trackDisplay(it.guild!!, plugin))
         }
