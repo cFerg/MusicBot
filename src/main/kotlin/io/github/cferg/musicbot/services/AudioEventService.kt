@@ -6,21 +6,9 @@ import com.sedmelluq.discord.lavaplayer.tools.FriendlyException
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackEndReason
 import me.aberrantfox.kjdautils.api.annotation.Service
-import me.aberrantfox.kjdautils.discord.Discord
 
 @Service
-class AudioEventService(private val plugin: AudioPlayerService, private val embeds: EmbedTrackListService, private val discord: Discord) : AudioEventAdapter() {
-    var guildID = ""
-
-    init {
-        for (i in plugin.audioEventService) {
-            if (i.value == this) {
-                guildID = i.key
-                break
-            }
-        }
-    }
-
+class AudioEventService(private val plugin: AudioPlayerService) : AudioEventAdapter() {
     override fun onPlayerPause(player: AudioPlayer) {
         println("Player Pause Trigger")
         //currentChannel?.sendMessage("${player.playingTrack.info.title} is now paused.")?.queue()
@@ -33,10 +21,6 @@ class AudioEventService(private val plugin: AudioPlayerService, private val embe
 
     override fun onTrackStart(player: AudioPlayer, track: AudioTrack) {
         println("Track Start Trigger")
-
-        val guildID = plugin.currentGuild[track.identifier]!!
-
-        discord.jda.getTextChannelById(plugin.currentSong[guildID]!!.channelSent)?.sendMessage(embeds.updateDisplay(discord.jda.getGuildById(guildID)!!, plugin))?.queue()
         //currentChannel?.sendMessage("${track.info.title} started playing.")?.queue()
     }
 
@@ -44,7 +28,7 @@ class AudioEventService(private val plugin: AudioPlayerService, private val embe
         if (endReason.mayStartNext || endReason == AudioTrackEndReason.FINISHED) {
             println("Track End Trigger")
 
-            plugin.startNextTrack(guildID, true)
+            plugin.startNextTrack(plugin.currentGuild[track.identifier]!!, true)
         }
     }
 
@@ -54,6 +38,6 @@ class AudioEventService(private val plugin: AudioPlayerService, private val embe
 
     override fun onTrackStuck(player: AudioPlayer, track: AudioTrack, thresholdMs: Long) {
         //currentChannel?.sendMessage("${track.info.title} is stuck - Skipping the song!")?.queue()
-        plugin.startNextTrack(guildID, false)
+        plugin.startNextTrack(plugin.guildQueue[track.identifier]!!, false)
     }
 }

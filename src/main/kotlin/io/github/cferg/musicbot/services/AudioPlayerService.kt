@@ -14,18 +14,19 @@ import me.aberrantfox.kjdautils.internal.di.PersistenceService
 import net.dv8tion.jda.api.managers.AudioManager
 
 @Service
-class AudioPlayerService(discord: Discord, config: Configuration, persistenceService: PersistenceService, embeds: EmbedTrackListService) {
-    var songQueue: MutableMap<String, MutableList<Song>> = mutableMapOf()
+class AudioPlayerService(private val discord: Discord, config: Configuration, persistenceService: PersistenceService, private val embeds: EmbedTrackListService) {
+    var songQueue: MutableMap<String, MutableList<Song>> = mutableMapOf() //guildID and Songs
 
     data class Song(val track: AudioTrack, val memberID: String, val guildID: String, val channelSent: String)
 
-    var currentSong: MutableMap<String, Song> = mutableMapOf()
-    var currentGuild: MutableMap<String, String> = mutableMapOf()
-    var guildQueue: MutableMap<String, String> = mutableMapOf()
-    var playerManager: MutableMap<String, AudioPlayerManager> = mutableMapOf()
-    var player: MutableMap<String, AudioPlayer> = mutableMapOf()
-    var audioManagers: MutableMap<String, AudioManager> = mutableMapOf()
-    var audioEventService: MutableMap<String, AudioEventService> = mutableMapOf()
+    var currentSong: MutableMap<String, Song> = mutableMapOf() //guildID and Song
+    var lastChannel: MutableMap<String, String> = mutableMapOf() //guildID and channelID
+    var currentGuild: MutableMap<String, String> = mutableMapOf() //track identifier and guildID
+    var guildQueue: MutableMap<String, String> = mutableMapOf() //track identifier and guildID
+    var playerManager: MutableMap<String, AudioPlayerManager> = mutableMapOf() //guildID and APM
+    var player: MutableMap<String, AudioPlayer> = mutableMapOf() //guildID and AP
+    var audioManagers: MutableMap<String, AudioManager> = mutableMapOf() //guildID and AM
+    var audioEventService: MutableMap<String, AudioEventService> = mutableMapOf() //guildID and AES
 
     init {
         discord.jda.guilds.map { it }.forEach { guild ->
@@ -37,7 +38,7 @@ class AudioPlayerService(discord: Discord, config: Configuration, persistenceSer
 
             player[guild.id] = playerManager[guild.id]!!.createPlayer()
             player[guild.id]!!.volume = 30
-            audioEventService[guild.id] = AudioEventService(this, embeds, discord)
+            audioEventService[guild.id] = AudioEventService(this)
             player[guild.id]!!.addListener(audioEventService[guild.id])
 
             audioManagers[guild.id] = guild.audioManager
@@ -55,9 +56,11 @@ class AudioPlayerService(discord: Discord, config: Configuration, persistenceSer
         if (player[guildID]!!.startTrack(song.track, true)) {
             currentSong[guildID] = song
             currentGuild[song.track.identifier] = guildID
+            discord.jda.getTextChannelById(currentSong[guildID]!!.channelSent)!!.sendMessage(embeds.trackDisplay(discord.jda.getGuildById(guildID)!!, this)).queue()
         } else {
             songQueue[guildID]!!.add(song)
             guildQueue[song.track.identifier] = guildID
+            discord.jda.getTextChannelById(song.channelSent)!!.sendMessage(embeds.addSong(discord.jda.getGuildById(guildID)!!, song.memberID, song.track)).queue()
         }
     }
 
@@ -78,14 +81,19 @@ class AudioPlayerService(discord: Discord, config: Configuration, persistenceSer
         val next = songQueue[guildID]!!.firstOrNull()
 
         if (next != null) {
+            println("non null trigger")
             player[guildID]!!.startTrack(next.track, noInterrupt)
             currentSong[guildID] = songQueue[guildID]!!.first()
             currentGuild[next.track.identifier] = guildID
             songQueue[guildID]!!.removeAt(0)
             guildQueue.remove(next.track.identifier)
-            //currentChannel?.sendMessage("${next.info.title} by ${next.info.author} has started playing!")?.queue()
+            lastChannel[guildID] = currentSong[guildID]!!.channelSent
+
+            discord.jda.getTextChannelById(currentSong[guildID]!!.channelSent)!!.sendMessage(embeds.trackDisplay(discord.jda.getGuildById(guildID)!!, this)).queue()
         } else {
+            println("null trigger")
             player[guildID]!!.stopTrack()
+            discord.jda.getTextChannelById(lastChannel[guildID]!!)!!.sendMessage(embeds.noSong(discord.jda.getGuildById(guildID)!!)).queue()
         }
     }
 }

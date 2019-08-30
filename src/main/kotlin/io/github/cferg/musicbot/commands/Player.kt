@@ -11,14 +11,11 @@ import me.aberrantfox.kjdautils.api.dsl.arg
 import me.aberrantfox.kjdautils.api.dsl.commands
 import me.aberrantfox.kjdautils.internal.arguments.IntegerRangeArg
 import me.aberrantfox.kjdautils.internal.arguments.UrlArg
-import net.dv8tion.jda.api.managers.AudioManager
 import io.github.cferg.musicbot.services.AudioPlayerService
-import io.github.cferg.musicbot.utility.AudioPlayerSendHandler
 import io.github.cferg.musicbot.services.AudioPlayerService.*
 import io.github.cferg.musicbot.services.EmbedTrackListService
 import me.aberrantfox.kjdautils.extensions.jda.sendPrivateMessage
 import me.aberrantfox.kjdautils.extensions.jda.toMember
-import me.aberrantfox.kjdautils.extensions.stdlib.convertToTimeString
 import me.aberrantfox.kjdautils.internal.arguments.MemberArg
 import me.aberrantfox.kjdautils.internal.di.PersistenceService
 import net.dv8tion.jda.api.entities.Member
@@ -36,7 +33,7 @@ fun playerCommands(plugin: AudioPlayerService, config: Configuration, persistenc
             val vc = it.author.toMember(guild)!!.voiceState?.channel
                     ?: return@execute it.respond("Please join a voice channel to use this command.")
 
-            plugin.audioManagers[guild.id]!!.openAudioConnection(vc)
+            plugin.audioManagers[guild.id]?.openAudioConnection(vc)
 
             plugin.playerManager[guild.id]!!.loadItem(url, object : AudioLoadResultHandler {
                 override fun trackLoaded(track: AudioTrack) {
@@ -229,7 +226,7 @@ fun playerCommands(plugin: AudioPlayerService, config: Configuration, persistenc
     command("Display") {
         description = "Displays the current track."
         execute {
-            it.respond(embed.updateDisplay(it.guild!!, plugin))
+            it.respond(embed.trackDisplay(it.guild!!, plugin))
         }
     }
 }

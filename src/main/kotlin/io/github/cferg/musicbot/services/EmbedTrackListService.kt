@@ -1,5 +1,6 @@
 package io.github.cferg.musicbot.services
 
+import com.sedmelluq.discord.lavaplayer.track.AudioTrack
 import io.github.cferg.musicbot.extensions.toTimeString
 import me.aberrantfox.kjdautils.api.annotation.Service
 import me.aberrantfox.kjdautils.api.dsl.embed
@@ -21,27 +22,45 @@ val playerOffImage = arrayOf(
 
 @Service
 class EmbedTrackListService{
-    fun updateDisplay(guild: Guild, player: AudioPlayerService) = embed {
-        color = Color.CYAN
-        val track = player.currentSong[guild.id]?.track!!.info
-        val display = if (track != null) {
-            "${track.title} by ${track.author}"
+    fun trackDisplay(guild: Guild, player: AudioPlayerService) = embed {
+        val track = player.currentSong[guild.id]?.track
+        val playStatus = player.player[guild.id]!!.playingTrack
+
+        addField("Current Song:", if (track != null) {
+            "-    Song: ${track.info.title}\n" +
+            "-    Artist: ${track.info.author}\n" +
+            "-    Duration: ${track.duration.toTimeString()}\n" +
+            "-    Queued by: ${guild.getMemberById(player.currentSong[guild.id]!!.memberID)?.asMention}"
         } else {
             "No song currently queued."
-        }
+        })
 
-        thumbnail = playerOnImage.random() //TODO replace with is playing check to specify url
-
-        addInlineField("Current Song: ", display)
-        addBlankField(true)
+        color = if (playStatus != null) Color.CYAN else Color.RED
+        thumbnail = if (playStatus != null) playerOnImage.random() else playerOffImage.random()
 
         if (player.songQueue[guild.id] != null){
             player.songQueue[guild.id]!!.forEachIndexed { index, song ->
                 addField("${index + 1}) ${song.track.info.title}",
-                        "     Artist: ${song.track.info.author}\n" +
-                        "     Duration: ${song.track.duration.toTimeString()}\n" +
-                        "     Queued by: ${guild.getMemberById(song.memberID)?.asMention}")
+                        "-    Artist: ${song.track.info.author}\n" +
+                        "-    Duration: ${song.track.duration.toTimeString()}\n" +
+                        "-    Queued by: ${guild.getMemberById(song.memberID)?.asMention}")
             }
         }
+    }
+
+    fun addSong(guild: Guild, memberID: String, track: AudioTrack) = embed{
+        addField("Added a new song:",
+                "-    Song: ${track.info.title}\n" +
+                "-    Artist: ${track.info.author}\n" +
+                "-    Duration: ${track.duration.toTimeString()}\n" +
+                "-    Queued by: ${guild.getMemberById(memberID)?.asMention}")
+        color = Color.green
+    }
+
+    fun noSong(guild: Guild) = embed{
+        addField("There are no more songs currently in the queue.",
+                "If you would like to add a song type:\n" +
+                        "\$\$Play <Song URL>")
+        color = Color.red
     }
 }
