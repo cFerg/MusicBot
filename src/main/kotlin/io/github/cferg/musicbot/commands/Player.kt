@@ -39,6 +39,7 @@ fun playerCommands(plugin: AudioPlayerService, config: Configuration, persistenc
                 override fun trackLoaded(track: AudioTrack) {
                     //TODO add track length check
                     plugin.queueAdd(guild.id, Song(track, it.author.id, guild.id, it.channel.id))
+                    it.message.delete().complete()
                 }
 
                 override fun playlistLoaded(playlist: AudioPlaylist) {
@@ -47,14 +48,13 @@ fun playerCommands(plugin: AudioPlayerService, config: Configuration, persistenc
                     for (track in playlist.tracks) {
                         plugin.queueAdd(guild.id, Song(track, it.author.id, guild.id, it.channel.id))
                     }
+                    it.message.delete().complete()
                 }
 
                 override fun noMatches() = it.respond("No matching song found")
 
                 override fun loadFailed(throwable: FriendlyException) = it.respond("Error, could not load track.")
             })
-
-            it.message.delete().queue()
         }
     }
 

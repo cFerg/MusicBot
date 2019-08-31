@@ -55,7 +55,7 @@ class EmbedTrackListService{
                 "-    **Song**: [${track.info.title}](${track.info.uri})\n" +
                 "-    **Artist**: ${track.info.author}\n" +
                 "-    **Duration**: ${track.duration.toTimeString()}\n" +
-                "-    **Queued** by: ${guild.getMemberById(memberID)?.asMention}")
+                "-    **Queued by**: ${guild.getMemberById(memberID)?.asMention}")
         color = Color.green
     }
 
