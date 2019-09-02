@@ -14,6 +14,7 @@ import me.aberrantfox.kjdautils.internal.arguments.UrlArg
 import io.github.cferg.musicbot.services.AudioPlayerService
 import io.github.cferg.musicbot.services.AudioPlayerService.*
 import io.github.cferg.musicbot.services.EmbedTrackListService
+import me.aberrantfox.kjdautils.extensions.jda.deleteIfExists
 import me.aberrantfox.kjdautils.extensions.jda.sendPrivateMessage
 import me.aberrantfox.kjdautils.extensions.jda.toMember
 import me.aberrantfox.kjdautils.internal.arguments.MemberArg
@@ -33,13 +34,12 @@ fun playerCommands(plugin: AudioPlayerService, config: Configuration, persistenc
             val vc = it.author.toMember(guild)!!.voiceState?.channel
                     ?: return@execute it.respond("Please join a voice channel to use this command.")
 
-            plugin.audioManagers[guild.id]?.openAudioConnection(vc)
+            plugin.audioManagers[guild.id]?.openAudioConnection(vc) ?: return@execute it.respond("Issue connecting bot to vc.")
 
             plugin.playerManager[guild.id]?.loadItem(url, object : AudioLoadResultHandler {
                 override fun trackLoaded(track: AudioTrack) {
                     //TODO add track length check
                     plugin.queueAdd(guild.id, Song(track, it.author.id, guild.id, it.channel.id))
-                    it.message.delete().complete()
                 }
 
                 override fun playlistLoaded(playlist: AudioPlaylist) {
@@ -48,13 +48,12 @@ fun playerCommands(plugin: AudioPlayerService, config: Configuration, persistenc
                     for (track in playlist.tracks) {
                         plugin.queueAdd(guild.id, Song(track, it.author.id, guild.id, it.channel.id))
                     }
-                    it.message.delete().complete()
                 }
 
                 override fun noMatches() = it.respond("No matching song found")
 
                 override fun loadFailed(throwable: FriendlyException) = it.respond("Error, could not load track.")
-            })
+            }) ?: return@execute it.respond("Issue resolving url.")
         }
     }
 

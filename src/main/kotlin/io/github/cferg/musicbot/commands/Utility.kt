@@ -22,6 +22,7 @@ fun pingCommand(infoService: InfoService) = commands {
 
     command("BotInfo") {
         description = "Displays the bot information."
+        requiresGuild = true
         execute {
             it.respond(infoService.botInfo(it.guild!!))
         }

@@ -24,7 +24,7 @@ val playerOffImage = arrayOf(
 class EmbedTrackListService{
     fun trackDisplay(guild: Guild, player: AudioPlayerService) = embed {
         val track = player.currentSong[guild.id]?.track
-        val playStatus = player.player[guild.id]!!.playingTrack
+        val playStatus = player.audio[guild.id]!!.playingTrack
 
         addField("Now Playing:", if (track != null) {
             "-    **Song**: [${track.info.title}](${track.info.uri})\n" +
