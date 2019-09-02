@@ -8,7 +8,7 @@ import com.sedmelluq.discord.lavaplayer.track.AudioTrackEndReason
 import me.aberrantfox.kjdautils.api.annotation.Service
 
 @Service
-class AudioEventService(private val plugin: AudioPlayerService) : AudioEventAdapter() {
+class AudioEventService(private val audioPlayerService: AudioPlayerService) : AudioEventAdapter() {
     override fun onPlayerPause(player: AudioPlayer) {
         println("Player Pause Trigger")
         //currentChannel?.sendMessage("${player.playingTrack.info.title} is now paused.")?.queue()
@@ -26,9 +26,7 @@ class AudioEventService(private val plugin: AudioPlayerService) : AudioEventAdap
 
     override fun onTrackEnd(player: AudioPlayer, track: AudioTrack, endReason: AudioTrackEndReason) {
         if (endReason.mayStartNext || endReason == AudioTrackEndReason.FINISHED) {
-            println("Track End Trigger")
 
-            plugin.startNextTrack(plugin.currentGuild[track.identifier]!!, true)
         }
     }
 

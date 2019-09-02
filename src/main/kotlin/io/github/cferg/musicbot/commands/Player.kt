@@ -1,29 +1,20 @@
 package io.github.cferg.musicbot.commands
 
-import com.sedmelluq.discord.lavaplayer.player.AudioLoadResultHandler
-import com.sedmelluq.discord.lavaplayer.tools.FriendlyException
-import com.sedmelluq.discord.lavaplayer.track.AudioPlaylist
-import com.sedmelluq.discord.lavaplayer.track.AudioTrack
 import io.github.cferg.musicbot.data.Configuration
-import io.github.cferg.musicbot.extensions.toTimeString
+import io.github.cferg.musicbot.services.AudioPlayerService
+import io.github.cferg.musicbot.services.EmbedTrackListService
 import me.aberrantfox.kjdautils.api.dsl.CommandSet
 import me.aberrantfox.kjdautils.api.dsl.arg
 import me.aberrantfox.kjdautils.api.dsl.commands
-import me.aberrantfox.kjdautils.internal.arguments.IntegerRangeArg
-import me.aberrantfox.kjdautils.internal.arguments.UrlArg
-import io.github.cferg.musicbot.services.AudioPlayerService
-import io.github.cferg.musicbot.services.AudioPlayerService.*
-import io.github.cferg.musicbot.services.EmbedTrackListService
-import me.aberrantfox.kjdautils.extensions.jda.deleteIfExists
-import me.aberrantfox.kjdautils.extensions.jda.sendPrivateMessage
 import me.aberrantfox.kjdautils.extensions.jda.toMember
+import me.aberrantfox.kjdautils.internal.arguments.IntegerRangeArg
 import me.aberrantfox.kjdautils.internal.arguments.MemberArg
+import me.aberrantfox.kjdautils.internal.arguments.UrlArg
 import me.aberrantfox.kjdautils.internal.di.PersistenceService
-import net.dv8tion.jda.api.entities.Member
+import net.dv8tion.jda.api.entities.TextChannel
 
 @CommandSet("Player")
-fun playerCommands(plugin: AudioPlayerService, config: Configuration, persistenceService: PersistenceService, embed: EmbedTrackListService) = commands {
-    //TODO add add as an alias of the command with an argument
+fun playerCommands(audioPlayerService: AudioPlayerService, config: Configuration, persistenceService: PersistenceService, embed: EmbedTrackListService) = commands {
     command("Play") {
         description = "Play the song listed - If a song is already playing, it's added to a queue."
         requiresGuild = true
@@ -31,80 +22,11 @@ fun playerCommands(plugin: AudioPlayerService, config: Configuration, persistenc
         execute {
             val url = it.args.component1() as String
             val guild = it.guild!!
-            val vc = it.author.toMember(guild)!!.voiceState?.channel
-                    ?: return@execute it.respond("Please join a voice channel to use this command.")
-
-            plugin.audioManagers[guild.id]?.openAudioConnection(vc) ?: return@execute it.respond("Issue connecting bot to vc.")
-
-            plugin.playerManager[guild.id]?.loadItem(url, object : AudioLoadResultHandler {
-                override fun trackLoaded(track: AudioTrack) {
-                    //TODO add track length check
-                    plugin.queueAdd(guild.id, Song(track, it.author.id, guild.id, it.channel.id))
-                }
-
-                override fun playlistLoaded(playlist: AudioPlaylist) {
-                    //TODO add permission check for individuals to play playlists
-                    //TODO add track length check - using configurable minimum and max range
-                    for (track in playlist.tracks) {
-                        plugin.queueAdd(guild.id, Song(track, it.author.id, guild.id, it.channel.id))
-                    }
-                }
-
-                override fun noMatches() = it.respond("No matching song found")
-
-                override fun loadFailed(throwable: FriendlyException) = it.respond("Error, could not load track.")
-            }) ?: return@execute it.respond("Issue resolving url.")
+            val channel = it.channel as TextChannel
+            audioPlayerService.playSong(guild, it.author.toMember(guild)!!.id, channel, url)
         }
     }
 
-    command("Pause") {
-        description = "Pauses the current song."
-        requiresGuild = true
-        execute {
-            val music = plugin.player[it.guild!!.id]!!
-
-            if (music.isPaused) {
-                it.respond("Player is already paused.")
-            } else {
-                music.isPaused = true
-
-                if (music.playingTrack != null) {
-                    val duration = music.playingTrack.position.toTimeString()
-                    it.respond("Paused song: ${music.playingTrack.info.title} at $duration")
-                } else {
-                    it.respond("Player is paused, but no songs are currently queued.")
-                }
-            }
-        }
-    }
-
-    //TODO add play with no arguments as an invoker
-    command("Resume") {
-        description = "Continues the last song (If one is still queued)"
-        requiresGuild = true
-        execute {
-            val music = plugin.player[it.guild!!.id]!!
-
-            if (!music.isPaused) {
-                if (music.playingTrack != null) {
-                    it.respond("The song is already playing.")
-                } else {
-                    it.respond("No songs are currently queued.")
-                }
-            } else {
-                music.isPaused = false
-
-                if (music.playingTrack != null) {
-                    val duration = music.playingTrack.position.toTimeString()
-                    it.respond("Resumed song: ${music.playingTrack.info.title} from $duration")
-                } else {
-                    it.respond("Player is resumed, but no songs are currently queued.")
-                }
-            }
-        }
-    }
-
-    //TODO add next as an alias
     command("Skip") {
         description = "Skips the current song."
         requiresGuild = true
@@ -185,41 +107,6 @@ fun playerCommands(plugin: AudioPlayerService, config: Configuration, persistenc
                 it.respond("The bot is now unmuted.")
             } else {
                 it.respond("The bot is currently not muted - check the volume level.")
-            }
-        }
-    }
-
-    command("Ignore") {
-        description = "Add the member to a bot blacklist."
-        requiresGuild = true
-        expect(arg(MemberArg, false))
-        execute {
-            val member = it.args.component1() as Member
-
-            if (config.guildConfigurations[it.guild!!.id]!!.ignoreList.contains(member.id)) {
-                it.author.sendPrivateMessage("${member.effectiveName} is already in the bot blacklist.")
-                return@execute
-            }
-
-            config.guildConfigurations[it.guild!!.id]!!.ignoreList.add(member.id)
-            persistenceService.save(config)
-            it.author.sendPrivateMessage("${member.effectiveName} is now added to the bot blacklist.")
-        }
-    }
-
-    command("Unignore") {
-        description = "Removes the member from a bot blacklist."
-        requiresGuild = true
-        expect(arg(MemberArg, false))
-        execute {
-            val member = it.args.component1() as Member
-
-            if (config.guildConfigurations[it.guild!!.id]!!.ignoreList.contains(member.id)) {
-                config.guildConfigurations[it.guild!!.id]!!.ignoreList.remove(member.id)
-                persistenceService.save(config)
-                it.author.sendPrivateMessage("${member.effectiveName} is now removed from the bot blacklist.")
-            } else {
-                it.author.sendPrivateMessage("${member.effectiveName} is not currently in the bot blacklist.")
             }
         }
     }

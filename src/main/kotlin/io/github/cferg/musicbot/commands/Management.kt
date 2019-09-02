@@ -1,22 +1,23 @@
 package io.github.cferg.musicbot.commands
 
-import io.github.cferg.musicbot.data.*
+import io.github.cferg.musicbot.data.Configuration
+import io.github.cferg.musicbot.services.AudioPlayerService
 import me.aberrantfox.kjdautils.api.dsl.CommandSet
 import me.aberrantfox.kjdautils.api.dsl.commands
+import me.aberrantfox.kjdautils.internal.arguments.CharArg
+import me.aberrantfox.kjdautils.internal.arguments.RoleArg
 import me.aberrantfox.kjdautils.internal.di.PersistenceService
-import io.github.cferg.musicbot.services.AudioPlayerService
-import me.aberrantfox.kjdautils.internal.arguments.*
 import net.dv8tion.jda.api.entities.Role
 
 @CommandSet("Management")
-fun managementCommands(plugin: AudioPlayerService, config: Configuration, persistenceService: PersistenceService) = commands {
+fun managementCommands(audioPlayerService: AudioPlayerService, config: Configuration, persistenceService: PersistenceService) = commands {
     command("Disconnect") {
         description = "Remove the bot from its current voice channel."
         requiresGuild = true
         execute {
-            val manager = plugin.audioManagers[it.guild!!.id]!!
-            plugin.player[it.guild!!.id]!!.stopTrack()
-            manager.closeAudioConnection()
+            val guild = it.guild!!
+            guild.audioManager.closeAudioConnection()
+            audioPlayerService.guildAudioMap[guild.id]!!.player.stopTrack()
         }
     }
 
@@ -26,7 +27,6 @@ fun managementCommands(plugin: AudioPlayerService, config: Configuration, persis
         expect(RoleArg("Role"))
         execute {
             val role = it.args.component1() as Role
-
             config.guildConfigurations[it.guild!!.id]!!.staffRole = role.id
             persistenceService.save(config)
         }
