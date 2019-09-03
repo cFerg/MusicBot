@@ -14,7 +14,7 @@ import me.aberrantfox.kjdautils.internal.di.PersistenceService
 import net.dv8tion.jda.api.entities.TextChannel
 
 @CommandSet("Player")
-fun playerCommands(audioPlayerService: AudioPlayerService, config: Configuration, persistenceService: PersistenceService, embed: EmbedTrackListService) = commands {
+fun playerCommands(audioPlayerService: AudioPlayerService, config: Configuration, embed: EmbedTrackListService) = commands {
     command("Play") {
         description = "Play the song listed - If a song is already playing, it's added to a queue."
         requiresGuild = true
@@ -23,7 +23,8 @@ fun playerCommands(audioPlayerService: AudioPlayerService, config: Configuration
             val url = it.args.component1() as String
             val guild = it.guild!!
             val channel = it.channel as TextChannel
-            audioPlayerService.playSong(guild, it.author.toMember(guild)!!.id, channel, url)
+            val member = it.author.toMember(guild)!!
+            audioPlayerService.playSong(guild, member.id, channel, url)
         }
     }
 
@@ -31,83 +32,26 @@ fun playerCommands(audioPlayerService: AudioPlayerService, config: Configuration
         description = "Skips the current song."
         requiresGuild = true
         execute {
-            if (plugin.songQueue.isNullOrEmpty())
+            val guildAudio = audioPlayerService.guildAudioMap[it.guild!!.id] ?: return@execute it.respond("Issue running Skip command.")
+
+            if (guildAudio.songQueue.isNullOrEmpty())
                 return@execute it.respond("No songs currently queued.")
 
             val guild = it.guild!!
             val member = it.author.toMember(guild)!!
-            val staffRole = config.guildConfigurations[guild.id]!!.staffRole
+            val staffRole = config.guildConfigurations[guild.id]?.staffRole
 
-            val playingTrack = plugin.player[guild.id]?.playingTrack?.info
+            val playingTrack = guildAudio.player.playingTrack.info
                     ?: return@execute it.respond("No songs currently queued.")
 
-            val queuedSong = it.author.id == plugin.currentSong[guild.id]?.memberID
-            val isStaff = member.roles.any { it.id == staffRole }
+            val queuedSong = it.author.id == guildAudio.songQueue.first.memberID
+            val isStaff = member.roles.any { staff -> staff.id == staffRole }
 
             if (!queuedSong && !isStaff)
                 return@execute it.respond("Sorry, only the person who queued the song or staff can skip.")
 
-            plugin.startNextTrack(guild.id, false)
+            audioPlayerService.playSong(guild, it.author.id, it.channel as TextChannel, "Skip") //TODO adjust this, put "skip" to remove error
             it.respond("Skipped song: ${playingTrack.title} by ${playingTrack.author}")
-        }
-    }
-
-    command("Restart") {
-        description = "Replays the current song from the beginning."
-        requiresGuild = true
-        execute {
-            plugin.player[it.guild!!.id]!!.playingTrack.position = 0
-            it.respond("Restarted the song: ${plugin.player[it.guild!!.id]!!.playingTrack.info.title}")
-        }
-    }
-
-    command("Clear") {
-        description = "Removes all currently queued songs."
-        requiresGuild = true
-        execute {
-            plugin.songQueue.clear()
-            it.respond("Cleared the current list of songs.")
-        }
-    }
-
-    command("Volume") {
-        description = "Adjust volume from range 0-100"
-        requiresGuild = true
-        expect(IntegerRangeArg(min = 0, max = 100))
-        execute {
-            plugin.player[it.guild!!.id]!!.volume = it.args.component1() as Int
-        }
-    }
-
-    var previousVolume: MutableMap<String, Int> = mutableMapOf()
-
-    command("Mute") {
-        description = "Mute bot, but keeps it playing."
-        requiresGuild = true
-        expect(arg(MemberArg, true))
-        execute {
-            if (previousVolume.containsKey(it.guild!!.id)) {
-                it.respond("The bot is already muted.")
-            } else {
-                previousVolume[it.guild!!.id] = plugin.player[it.guild!!.id]!!.volume
-                plugin.player[it.guild!!.id]!!.volume = 0
-                it.respond("The bot is now muted.")
-            }
-        }
-    }
-
-    command("Unmute") {
-        description = "Sets bot's volume back to previous level before it was muted."
-        requiresGuild = true
-        expect(arg(MemberArg, true))
-        execute {
-            if (previousVolume.containsKey(it.guild!!.id)) {
-                plugin.player[it.guild!!.id]!!.volume = previousVolume[it.guild!!.id]!!
-                previousVolume.remove(it.guild!!.id)
-                it.respond("The bot is now unmuted.")
-            } else {
-                it.respond("The bot is currently not muted - check the volume level.")
-            }
         }
     }
 
@@ -115,7 +59,8 @@ fun playerCommands(audioPlayerService: AudioPlayerService, config: Configuration
         description = "Lists the current songs."
         requiresGuild = true
         execute {
-            it.respond(embed.trackDisplay(it.guild!!, plugin))
+            val guild = it.guild!!
+            it.respond(embed.trackDisplay(guild, audioPlayerService))
         }
     }
 }

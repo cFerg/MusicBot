@@ -26,7 +26,7 @@ class AudioEventService(private val audioPlayerService: AudioPlayerService) : Au
 
     override fun onTrackEnd(player: AudioPlayer, track: AudioTrack, endReason: AudioTrackEndReason) {
         if (endReason.mayStartNext || endReason == AudioTrackEndReason.FINISHED) {
-
+            //TODO re-add play from here
         }
     }
 
@@ -36,6 +36,7 @@ class AudioEventService(private val audioPlayerService: AudioPlayerService) : Au
 
     override fun onTrackStuck(player: AudioPlayer, track: AudioTrack, thresholdMs: Long) {
         //currentChannel?.sendMessage("${track.info.title} is stuck - Skipping the song!")?.queue()
-        plugin.startNextTrack(plugin.currentGuild[track.identifier]!!, false)
+        //audioPlayerService.playSong(audioPlayerService.guildAudioMap[]) .startNextTrack(plugin.currentGuild[track.identifier]!!, false)
+        //TODO add a guild lookup based on track identifier
     }
 }

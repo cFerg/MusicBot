@@ -15,7 +15,6 @@ import java.util.*
 
 @Service
 class AudioPlayerService(discord: Discord, private val embeds: EmbedTrackListService) {
-
     data class Song(val track: AudioTrack, val memberID: String)
     data class GuildAudio(var player: AudioPlayer, var audioEventService: AudioEventService, var songQueue: ArrayDeque<Song>)
 

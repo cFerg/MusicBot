@@ -16,8 +16,10 @@ fun managementCommands(audioPlayerService: AudioPlayerService, config: Configura
         requiresGuild = true
         execute {
             val guild = it.guild!!
+            val guildAudio = audioPlayerService.guildAudioMap[it.guild!!.id] ?: return@execute it.respond("Issue running Disconnect command.")
+
             guild.audioManager.closeAudioConnection()
-            audioPlayerService.guildAudioMap[guild.id]!!.player.stopTrack()
+            guildAudio.player.stopTrack()
         }
     }
 
@@ -27,7 +29,10 @@ fun managementCommands(audioPlayerService: AudioPlayerService, config: Configura
         expect(RoleArg("Role"))
         execute {
             val role = it.args.component1() as Role
-            config.guildConfigurations[it.guild!!.id]!!.staffRole = role.id
+            val guild = it.guild!!
+            val guildConfig = config.guildConfigurations[guild.id] ?: return@execute it.respond("Issue retrieving configurations.")
+
+            guildConfig.staffRole = role.id
             persistenceService.save(config)
         }
     }
