@@ -52,7 +52,6 @@ fun moderationCommands(audioPlayerService: AudioPlayerService, config: Configura
     command("Mute") {
         description = "Mute bot, but keeps it playing."
         requiresGuild = true
-        expect(arg(MemberArg, true))
         execute {
             val guild = it.guild!!
             if (previousVolume.containsKey(guild.id)) {
@@ -60,7 +59,7 @@ fun moderationCommands(audioPlayerService: AudioPlayerService, config: Configura
             } else {
                 val guildAudio = audioPlayerService.guildAudioMap[guild.id] ?: return@execute it.respond("Issue running Volume command.")
                 previousVolume[guild.id] = guildAudio.player.volume
-                audioPlayerService.guildAudioMap[guild.id]?.player?.volume = 0
+                guildAudio.player.volume = 0
                 it.respond("The bot is now muted.")
             }
         }
@@ -69,7 +68,6 @@ fun moderationCommands(audioPlayerService: AudioPlayerService, config: Configura
     command("Unmute") {
         description = "Sets bot's volume back to previous level before it was muted."
         requiresGuild = true
-        expect(arg(MemberArg, true))
         execute {
             val guild = it.guild!!
             if (previousVolume.containsKey(guild.id)) {
