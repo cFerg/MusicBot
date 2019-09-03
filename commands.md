@@ -12,21 +12,23 @@
 | Prefix     | Character | Sets the prefix for the bot.                   |
 | SetStaff   | Role      | Sets a Staff role for moderation commands      |
 
+## Moderation
+| Commands | Arguments       | Description                                                   |
+| -------- | --------------- | ------------------------------------------------------------- |
+| Clear    | <none>          | Removes all currently queued songs.                           |
+| Ignore   | Member          | Add the member to a bot blacklist.                            |
+| Mute     | <none>          | Mute bot, but keeps it playing.                               |
+| Restart  | <none>          | Replays the current song from the beginning.                  |
+| Unignore | Member          | Removes the member from a bot blacklist.                      |
+| Unmute   | <none>          | Sets bot's volume back to previous level before it was muted. |
+| Volume   | Integer (0-100) | Adjust volume from range 0-100                                |
+
 ## Player
-| Commands | Arguments       | Description                                                                 |
-| -------- | --------------- | --------------------------------------------------------------------------- |
-| Clear    | <none>          | Removes all currently queued songs.                                         |
-| Ignore   | Member          | Add the member to a bot blacklist.                                          |
-| List     | <none>          | Lists the current songs.                                                    |
-| Mute     | (Member)        | Mute bot, but keeps it playing.                                             |
-| Pause    | <none>          | Pauses the current song.                                                    |
-| Play     | URL             | Play the song listed - If a song is already playing, it's added to a queue. |
-| Restart  | <none>          | Replays the current song from the beginning.                                |
-| Resume   | <none>          | Continues the last song (If one is still queued)                            |
-| Skip     | <none>          | Skips the current song.                                                     |
-| Unignore | Member          | Removes the member from a bot blacklist.                                    |
-| Unmute   | (Member)        | Sets bot's volume back to previous level before it was muted.               |
-| Volume   | Integer (0-100) | Adjust volume from range 0-100                                              |
+| Commands | Arguments | Description                                                                 |
+| -------- | --------- | --------------------------------------------------------------------------- |
+| List     | <none>    | Lists the current songs.                                                    |
+| Play     | URL       | Play the song listed - If a song is already playing, it's added to a queue. |
+| Skip     | <none>    | Skips the current song.                                                     |
 
 ## Utility
 | Commands | Arguments | Description                                |
