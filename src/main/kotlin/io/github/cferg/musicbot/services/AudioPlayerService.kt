@@ -3,6 +3,7 @@ package io.github.cferg.musicbot.services
 import com.sedmelluq.discord.lavaplayer.player.AudioLoadResultHandler
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayer
 import com.sedmelluq.discord.lavaplayer.player.DefaultAudioPlayerManager
+import com.sedmelluq.discord.lavaplayer.source.AudioSourceManagers
 import com.sedmelluq.discord.lavaplayer.tools.FriendlyException
 import com.sedmelluq.discord.lavaplayer.track.AudioPlaylist
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack
@@ -23,7 +24,12 @@ class AudioPlayerService(private val discord: Discord) {
 
     init {
         discord.jda.guilds.forEach { guild ->
-            val guildAudioPlayer = DefaultAudioPlayerManager().createPlayer()
+            val playerManager = DefaultAudioPlayerManager()
+
+            AudioSourceManagers.registerLocalSource(playerManager)
+            AudioSourceManagers.registerRemoteSources(playerManager)
+
+            val guildAudioPlayer = playerManager.createPlayer()
 
             guildAudioPlayer.addListener(AudioEventService(this))
             guild.audioManager.sendingHandler = AudioPlayerSendHandler(guildAudioPlayer)
@@ -46,28 +52,40 @@ class AudioPlayerService(private val discord: Discord) {
         if (songUrl.isEmpty()) return
 
         DefaultAudioPlayerManager().loadItem(songUrl, object : AudioLoadResultHandler {
-            override fun loadFailed(throwable: FriendlyException) = channel.sendMessage("Failed to load song.").queue()
-            override fun noMatches() = channel.sendMessage("No matching song found.").queue()
-
             override fun trackLoaded(track: AudioTrack) {
-                if (guildAudio.songQueue.isEmpty() && guildAudio.player.isPaused)
+                val songList = guildAudio.songQueue
+                val currentVC = guild.getMemberById(songList.first.memberID)?.voiceState?.channel
+
+                if (guildAudio.songQueue.isEmpty() && guildAudio.player.isPaused && currentVC != null) {
+                    guild.audioManager.openAudioConnection(currentVC)
                     guildAudio.player.playTrack(track)
-                else
+                }else {
                     guildAudio.songQueue.add(Song(track, memberId, channel.id))
+                }
             }
 
             override fun playlistLoaded(playlist: AudioPlaylist) {
                 playlist.tracks.forEachIndexed { index, track ->
-                    if (guildAudio.songQueue.isEmpty() && index == 0)
+                    val songList = guildAudio.songQueue
+                    val currentVC = guild.getMemberById(songList.first.memberID)?.voiceState?.channel
+
+                    if (guildAudio.songQueue.isEmpty() && index == 0 && currentVC != null) {
+                        guild.audioManager.openAudioConnection(currentVC)
                         guildAudio.player.playTrack(track)
-                    else
+                    }else {
                         guildAudio.songQueue.add(Song(track, memberId, channel.id))
+                    }
                 }
             }
+
+            override fun noMatches() = channel.sendMessage("No matching song found.").queue()
+
+            override fun loadFailed(throwable: FriendlyException) = channel.sendMessage("Failed to load song.").queue()
         })
     }
 
     fun nextSong(guildID: String){
+        val guild = discord.jda.getGuildById(guildID) ?: return
         val guildAudio = guildAudioMap[guildID] ?: return
         val previousTrack = guildAudio.songQueue.first
         val textChannelID = previousTrack.channelID
@@ -80,6 +98,10 @@ class AudioPlayerService(private val discord: Discord) {
         songList.removeFirst()
 
         if (songList.isNotEmpty()){
+            val currentVC = guild.getMemberById(songList.first.memberID)?.voiceState?.channel ?: return nextSong(guildID)
+
+            guild.audioManager.openAudioConnection(currentVC)
+
             guildAudio.player.startTrack(songList.first.track, false)
         }else{
             guildAudio.player.stopTrack()

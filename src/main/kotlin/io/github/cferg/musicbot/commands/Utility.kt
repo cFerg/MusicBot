@@ -5,7 +5,7 @@ import me.aberrantfox.kjdautils.api.dsl.commands
 import io.github.cferg.musicbot.services.InfoService
 
 @CommandSet("Utility")
-fun pingCommand(infoService: InfoService) = commands {
+fun utilityCommands(infoService: InfoService) = commands {
     command("Ping") {
         description = "Displays network ping of the bot!"
         execute {
