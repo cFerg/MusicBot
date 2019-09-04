@@ -15,17 +15,21 @@ class AudioEventService(private val audioPlayerService: AudioPlayerService) : Au
 
     override fun onTrackEnd(player: AudioPlayer, track: AudioTrack, endReason: AudioTrackEndReason) {
         if (endReason.mayStartNext || endReason == AudioTrackEndReason.FINISHED) {
-            //TODO re-add play from here
+            val guildID = audioPlayerService.trackGuildMap[track.identifier]!!
+
+            audioPlayerService.nextSong(guildID)
         }
     }
 
     override fun onTrackException(player: AudioPlayer, track: AudioTrack, exception: FriendlyException) {
-        //currentChannel?.sendMessage("\\!\\!\\! Error Occurred - Please Let Staff Know \\!\\!\\!")?.queue()
+        val guildID = audioPlayerService.trackGuildMap[track.identifier]!!
+
+        audioPlayerService.nextSong(guildID)
     }
 
     override fun onTrackStuck(player: AudioPlayer, track: AudioTrack, thresholdMs: Long) {
-        //currentChannel?.sendMessage("${track.info.title} is stuck - Skipping the song!")?.queue()
-        //audioPlayerService.playSong(audioPlayerService.guildAudioMap[]) .startNextTrack(plugin.currentGuild[track.identifier]!!, false)
-        //TODO add a guild lookup based on track identifier
+        val guildID = audioPlayerService.trackGuildMap[track.identifier]!!
+
+        audioPlayerService.nextSong(guildID)
     }
 }

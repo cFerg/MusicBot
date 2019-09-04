@@ -14,11 +14,12 @@ import net.dv8tion.jda.api.entities.TextChannel
 import java.util.*
 
 @Service
-class AudioPlayerService(discord: Discord) {
-    data class Song(val track: AudioTrack, val memberID: String)
+class AudioPlayerService(private val discord: Discord) {
+    data class Song(val track: AudioTrack, val memberID: String, val channelID: String)
     data class GuildAudio(var player: AudioPlayer, var songQueue: ArrayDeque<Song>)
 
-    private var guildAudioMap = mutableMapOf<String, GuildAudio>()
+    var guildAudioMap = mutableMapOf<String, GuildAudio>()
+    var trackGuildMap = mutableMapOf<String, String>()
 
     init {
         discord.jda.guilds.forEach { guild ->
@@ -32,14 +33,14 @@ class AudioPlayerService(discord: Discord) {
     }
 
     fun clearByMember(guildID: String, memberID: String) {
-        guildAudioMap[guildID]?.songQueue?.removeIf { it.memberID == memberID }
+        val guildAudio = guildAudioMap[guildID] ?: return
+        guildAudio.songQueue.removeIf {
+            trackGuildMap.remove(it.track.identifier)
+            it.memberID == memberID
+        }
     }
 
-    fun queueSong()
-
-    fun playNext()
-
-    private fun playSong(guild: Guild, memberId: String, channel: TextChannel, songUrl: String) {
+    fun playSong(guild: Guild, memberId: String, channel: TextChannel, songUrl: String) {
         val guildAudio = guildAudioMap[guild.id] ?: return
 
         if (songUrl.isEmpty()) return
@@ -52,7 +53,7 @@ class AudioPlayerService(discord: Discord) {
                 if (guildAudio.songQueue.isEmpty() && guildAudio.player.isPaused)
                     guildAudio.player.playTrack(track)
                 else
-                    guildAudio.songQueue.add(Song(track, memberId))
+                    guildAudio.songQueue.add(Song(track, memberId, channel.id))
             }
 
             override fun playlistLoaded(playlist: AudioPlaylist) {
@@ -60,9 +61,28 @@ class AudioPlayerService(discord: Discord) {
                     if (guildAudio.songQueue.isEmpty() && index == 0)
                         guildAudio.player.playTrack(track)
                     else
-                        guildAudio.songQueue.add(Song(track, memberId))
+                        guildAudio.songQueue.add(Song(track, memberId, channel.id))
                 }
             }
         })
+    }
+
+    fun nextSong(guildID: String){
+        val guildAudio = guildAudioMap[guildID] ?: return
+        val previousTrack = guildAudio.songQueue.first
+        val textChannelID = previousTrack.channelID
+        val textChannel = discord.jda.getTextChannelById(textChannelID) ?: return
+        val previousTrackInfo = previousTrack.track.info
+
+        textChannel.sendMessage("Skipping ${previousTrackInfo.title} by ${previousTrackInfo.author}")
+
+        val songList = guildAudio.songQueue
+        songList.removeFirst()
+
+        if (songList.isNotEmpty()){
+            guildAudio.player.startTrack(songList.first.track, false)
+        }else{
+            guildAudio.player.stopTrack()
+        }
     }
 }
