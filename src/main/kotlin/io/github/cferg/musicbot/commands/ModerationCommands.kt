@@ -18,9 +18,13 @@ fun moderationCommands(audioPlayerService: AudioPlayerService, config: Configura
         requiresGuild = true
         execute {
             val guild = it.guild!!
-            val guildAudio = audioPlayerService.guildAudioMap[guild.id] ?: return@execute it.respond("Issue running Restart command.")
-            guildAudio.player.playingTrack.position = 0
-            it.respond("Restarted the song: ${guildAudio.player.playingTrack.info.title}")
+            val guildAudio = audioPlayerService.guildAudioMap[guild.id]
+                ?: return@execute it.respond("Issue running Restart command.")
+
+            val track = guildAudio.player.playingTrack
+
+            track.position = 0
+            it.respond("Restarted the song: ${track.info.title}")
         }
     }
 
@@ -29,7 +33,9 @@ fun moderationCommands(audioPlayerService: AudioPlayerService, config: Configura
         requiresGuild = true
         execute {
             val guild = it.guild!!
-            val guildAudio = audioPlayerService.guildAudioMap[guild.id] ?: return@execute it.respond("Issue running Clear command.")
+            val guildAudio = audioPlayerService.guildAudioMap[guild.id]
+                ?: return@execute it.respond("Issue running Clear command.")
+
             guildAudio.songQueue.clear()
             it.respond("Cleared the current list of songs.")
         }
@@ -41,9 +47,13 @@ fun moderationCommands(audioPlayerService: AudioPlayerService, config: Configura
         expect(IntegerRangeArg(min = 0, max = 100))
         execute {
             val guild = it.guild!!
-            val guildAudio = audioPlayerService.guildAudioMap[guild.id] ?: return@execute it.respond("Issue running Volume command.")
-            guildAudio.player.volume = it.args.component1() as Int
-            it.respond("Set player volume to ${guildAudio.player.volume}")
+            val guildAudio = audioPlayerService.guildAudioMap[guild.id]
+                ?: return@execute it.respond("Issue running Volume command.")
+
+            val player = guildAudio.player
+
+            player.volume = it.args.component1() as Int
+            it.respond("Set player volume to ${player.volume}")
         }
     }
 
@@ -54,14 +64,15 @@ fun moderationCommands(audioPlayerService: AudioPlayerService, config: Configura
         requiresGuild = true
         execute {
             val guild = it.guild!!
-            if (previousVolume.containsKey(guild.id)) {
-                it.respond("The bot is already muted.")
-            } else {
-                val guildAudio = audioPlayerService.guildAudioMap[guild.id] ?: return@execute it.respond("Issue running Volume command.")
-                previousVolume[guild.id] = guildAudio.player.volume
-                guildAudio.player.volume = 0
-                it.respond("The bot is now muted.")
-            }
+            if (previousVolume.containsKey(guild.id))
+                return@execute it.respond("The bot is already muted.")
+
+            val guildAudio = audioPlayerService.guildAudioMap[guild.id]
+                ?: return@execute it.respond("Issue running Volume command.")
+
+            previousVolume[guild.id] = guildAudio.player.volume
+            guildAudio.player.volume = 0
+            it.respond("The bot is now muted.")
         }
     }
 
@@ -70,53 +81,59 @@ fun moderationCommands(audioPlayerService: AudioPlayerService, config: Configura
         requiresGuild = true
         execute {
             val guild = it.guild!!
-            if (previousVolume.containsKey(guild.id)) {
-                val guildAudio = audioPlayerService.guildAudioMap[guild.id] ?: return@execute it.respond("Issue running Unmute command.")
-                guildAudio.player.volume = previousVolume[guild.id] ?: 30 //If an error occurs, default volume to 30 (change to configurable later)
-                previousVolume.remove(guild.id)
-                it.respond("The bot is now unmuted.")
-            } else {
-                it.respond("The bot is currently not muted - check the volume level.")
-            }
+            if (!previousVolume.containsKey(guild.id))
+                return@execute it.respond("The bot is currently not muted - check the volume level.")
+
+            val guildAudio = audioPlayerService.guildAudioMap[guild.id]
+                ?: return@execute it.respond("Issue running Unmute command.")
+
+            //If an error occurs, default volume to 30 (change to configurable later)
+            guildAudio.player.volume = previousVolume[guild.id] ?: 30
+            previousVolume.remove(guild.id)
+            it.respond("The bot is now unmuted.")
         }
     }
 
     command("Ignore") {
         description = "Add the member to a bot blacklist."
         requiresGuild = true
-        expect(arg(MemberArg, false))
+        expect(MemberArg)
         execute {
             val guild = it.guild!!
             val member = it.args.component1() as Member
-            val guildConfig = config.guildConfigurations[guild.id] ?: return@execute it.respond("Issue retrieving configurations.")
+            val guildConfig = config.guildConfigurations[guild.id]
+                ?: return@execute it.respond("Issue retrieving configurations.")
 
             if (guildConfig.ignoreList.contains(member.id)) {
-                it.author.sendPrivateMessage("${member.effectiveName} is already in the bot blacklist.")
+                it.respond("${member.effectiveName} is already in the bot blacklist.")
                 return@execute
             }
 
             guildConfig.ignoreList.add(member.id)
             persistenceService.save(config)
-            it.author.sendPrivateMessage("${member.effectiveName} is now added to the bot blacklist.")
+            it.respond("${member.effectiveName} is now added to the bot blacklist.")
         }
     }
 
     command("Unignore") {
         description = "Removes the member from a bot blacklist."
         requiresGuild = true
-        expect(arg(MemberArg, false))
+        expect(MemberArg)
         execute {
             val guild = it.guild!!
             val member = it.args.component1() as Member
-            val guildConfig = config.guildConfigurations[guild.id] ?: return@execute it.respond("Issue retrieving configurations.")
+            val guildConfig = config.guildConfigurations[guild.id]
+                ?: return@execute it.respond("Issue retrieving configurations.")
 
-            if (guildConfig.ignoreList.contains(member.id)) {
+            val response = if (guildConfig.ignoreList.contains(member.id)) {
                 guildConfig.ignoreList.remove(member.id)
                 persistenceService.save(config)
-                it.author.sendPrivateMessage("${member.effectiveName} is now removed from the bot blacklist.")
+                "${member.effectiveName} is now removed from the bot blacklist."
             } else {
-                it.author.sendPrivateMessage("${member.effectiveName} is not currently in the bot blacklist.")
+                "${member.effectiveName} is not currently in the bot blacklist."
             }
+
+            it.respond(response)
         }
     }
 }

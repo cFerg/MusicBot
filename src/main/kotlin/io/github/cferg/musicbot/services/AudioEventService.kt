@@ -9,20 +9,9 @@ import me.aberrantfox.kjdautils.api.annotation.Service
 
 @Service
 class AudioEventService(private val audioPlayerService: AudioPlayerService) : AudioEventAdapter() {
-    override fun onPlayerPause(player: AudioPlayer) {
-        println("Player Pause Trigger")
-        //currentChannel?.sendMessage("${player.playingTrack.info.title} is now paused.")?.queue()
-    }
-
-    override fun onPlayerResume(player: AudioPlayer) {
-        println("Player Resume Trigger")
-        //currentChannel?.sendMessage("${player.playingTrack.info.title} resumed playing.")?.queue()
-    }
-
-    override fun onTrackStart(player: AudioPlayer, track: AudioTrack) {
-        println("Track Start Trigger")
-        //currentChannel?.sendMessage("${track.info.title} started playing.")?.queue()
-    }
+    override fun onPlayerPause(player: AudioPlayer) = Unit
+    override fun onPlayerResume(player: AudioPlayer) = Unit
+    override fun onTrackStart(player: AudioPlayer, track: AudioTrack) = Unit
 
     override fun onTrackEnd(player: AudioPlayer, track: AudioTrack, endReason: AudioTrackEndReason) {
         if (endReason.mayStartNext || endReason == AudioTrackEndReason.FINISHED) {

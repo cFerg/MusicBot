@@ -9,10 +9,12 @@ import me.aberrantfox.kjdautils.internal.command.Pass
 
 @Precondition
 fun isConnectedToVoiceChannel() = exit@{ event: CommandEvent ->
-    val guild = event.guild ?: return@exit Fail("This command must be executed in a text channel.")
+    event.guild ?: return@exit Fail("This command must be executed in a text channel.")
+
     val command = event.container.commands[event.commandStruct.commandName] ?: return@exit Pass
+
     if (command.category == Constants.MODERATION_CATEGORY) return@exit Pass
 
-    event.author.toMember(guild)!!.voiceState?.channel
-            ?: return@exit Fail("Please join a voice channel to use this command.")
+    event.message.member!!.voiceState?.channel
+        ?: return@exit Fail("Please join a voice channel to use this command.")
 }

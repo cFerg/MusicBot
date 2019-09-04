@@ -14,42 +14,39 @@ import net.dv8tion.jda.api.entities.TextChannel
 import java.util.*
 
 @Service
-class AudioPlayerService(discord: Discord, private val embeds: EmbedTrackListService) {
+class AudioPlayerService(discord: Discord) {
     data class Song(val track: AudioTrack, val memberID: String)
-    data class GuildAudio(var player: AudioPlayer, var audioEventService: AudioEventService, var songQueue: ArrayDeque<Song>)
+    data class GuildAudio(var player: AudioPlayer, var songQueue: ArrayDeque<Song>)
 
-    var guildAudioMap = mutableMapOf<String, GuildAudio>()
+    private var guildAudioMap = mutableMapOf<String, GuildAudio>()
 
     init {
         discord.jda.guilds.forEach { guild ->
-            val defaultAudioPlayerManager = DefaultAudioPlayerManager()
-            val guildAudioPlayer = defaultAudioPlayerManager.createPlayer()
+            val guildAudioPlayer = DefaultAudioPlayerManager().createPlayer()
 
             guildAudioPlayer.addListener(AudioEventService(this))
             guild.audioManager.sendingHandler = AudioPlayerSendHandler(guildAudioPlayer)
 
-            guildAudioMap[guild.id] = GuildAudio(guildAudioPlayer, AudioEventService(this), ArrayDeque())
+            guildAudioMap[guild.id] = GuildAudio(guildAudioPlayer, ArrayDeque())
         }
     }
 
     fun clearByMember(guildID: String, memberID: String) {
-        val guildAudio = guildAudioMap[guildID] ?: return
-        guildAudio.songQueue.removeIf { it.memberID == memberID }
+        guildAudioMap[guildID]?.songQueue?.removeIf { it.memberID == memberID }
     }
 
-    fun playSong(guild: Guild, memberId: String, channel: TextChannel, songUrl: String) {
+    fun queueSong()
+
+    fun playNext()
+
+    private fun playSong(guild: Guild, memberId: String, channel: TextChannel, songUrl: String) {
         val guildAudio = guildAudioMap[guild.id] ?: return
 
-        DefaultAudioPlayerManager().loadItem(songUrl, object : AudioLoadResultHandler {
-            override fun loadFailed(throwable: FriendlyException) {
-                channel.sendMessage("Failed to load song.").queue()
-                return
-            }
+        if (songUrl.isEmpty()) return
 
-            override fun noMatches() {
-                channel.sendMessage("No matching song found.").queue()
-                return
-            }
+        DefaultAudioPlayerManager().loadItem(songUrl, object : AudioLoadResultHandler {
+            override fun loadFailed(throwable: FriendlyException) = channel.sendMessage("Failed to load song.").queue()
+            override fun noMatches() = channel.sendMessage("No matching song found.").queue()
 
             override fun trackLoaded(track: AudioTrack) {
                 if (guildAudio.songQueue.isEmpty() && guildAudio.player.isPaused)

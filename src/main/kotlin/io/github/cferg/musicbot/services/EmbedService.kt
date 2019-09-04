@@ -4,33 +4,34 @@ import com.sedmelluq.discord.lavaplayer.track.AudioTrack
 import io.github.cferg.musicbot.extensions.toTimeString
 import me.aberrantfox.kjdautils.api.annotation.Service
 import me.aberrantfox.kjdautils.api.dsl.embed
+import me.aberrantfox.kjdautils.discord.Discord
 import net.dv8tion.jda.api.entities.Guild
 import net.dv8tion.jda.api.entities.MessageEmbed
 import java.awt.Color
 import java.util.*
 
 //TODO move these to a config
-val playerOnImage = arrayOf(
+val playerOnImage = listOf(
     "https://i.imgur.com/DzVDu0c.gif",
     "https://i.imgur.com/0W8ZoUs.gif",
     "https://i.imgur.com/EZm2asN.gif"
 )
 
-val playerOffImage = arrayOf(
+val playerOffImage = listOf(
     "https://i.imgur.com/S7A1t6W.gif",
     "https://i.imgur.com/MuPScTC.gif",
     "https://i.imgur.com/izVWqaM.gif"
 )
 
 @Service
-class EmbedTrackListService {
+class EmbedService(private val discord: Discord) {
     fun trackDisplay(guild: Guild, player: AudioPlayerService): MessageEmbed {
-        val track: AudioTrack = player.guildAudioMap[guild.id]?.songQueue?.firstOrNull()?.track ?: return noSong()
-        val playStatus = player.guildAudioMap[guild.id]?.player?.playingTrack ?: false
+        val guildAudio = player.guildAudioMap[guild.id]
+        val track = guildAudio?.songQueue?.firstOrNull()?.track ?: return noSong()
+        val isPlaying = !guildAudio.player.isPaused
 
         return embed {
-            val audio = player.guildAudioMap[guild.id] ?:  return@embed
-            val songList = audio.songQueue
+            val songList = guildAudio.songQueue
 
             addField("Now Playing:",
                 "- **Song**: [${track.info.title}](${track.info.uri})\n" +
@@ -38,8 +39,8 @@ class EmbedTrackListService {
                 "- **Duration**: ${track.duration.toTimeString()}\n" +
                 "- **Queued by**: ${guild.getMemberById(songList.first.memberID)?.asMention}")
 
-            color = if (playStatus == true) Color.CYAN else Color.RED
-            thumbnail = if (playStatus == true) playerOnImage.random() else playerOffImage.random()
+            color = if (isPlaying) Color.CYAN else Color.RED
+            thumbnail = if (isPlaying) playerOnImage.random() else playerOffImage.random()
 
             //TODO if there's a better way to just start at index 1 with songList, do that
             if (songList.size > 1) {
@@ -67,10 +68,9 @@ class EmbedTrackListService {
         color = Color.green
     }
 
-    fun noSong() = embed {
+    private fun noSong() = embed {
         addField("There are no more songs currently in the queue.",
-                "If you would like to add a song type:\n" +
-                        "\$\$Play <Song URL>")
+            "If you would like to add a song type:\n${discord.configuration.prefix}Play <Song URL>")
         color = Color.red
     }
 }
