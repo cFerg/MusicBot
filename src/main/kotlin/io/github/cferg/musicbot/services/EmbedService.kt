@@ -23,6 +23,7 @@ val playerOffImage = listOf(
     "https://i.imgur.com/izVWqaM.gif"
 )
 
+//TODO add an embed display limit - it doesn't error out, but it won't show them all
 @Service
 class EmbedService(private val discord: Discord) {
     fun trackDisplay(guild: Guild, player: AudioPlayerService): MessageEmbed {
@@ -68,7 +69,7 @@ class EmbedService(private val discord: Discord) {
         color = Color.green
     }
 
-    private fun noSong() = embed {
+    fun noSong() = embed {
         addField("There are no more songs currently in the queue.",
             "If you would like to add a song type:\n${discord.configuration.prefix}Play <Song URL>")
         color = Color.red
