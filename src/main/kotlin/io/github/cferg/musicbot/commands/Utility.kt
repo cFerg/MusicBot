@@ -1,8 +1,7 @@
 package io.github.cferg.musicbot.commands
 
-import me.aberrantfox.kjdautils.api.dsl.CommandSet
-import me.aberrantfox.kjdautils.api.dsl.commands
 import io.github.cferg.musicbot.services.InfoService
+import me.aberrantfox.kjdautils.api.dsl.*
 
 @CommandSet("Utility")
 fun utilityCommands(infoService: InfoService) = commands {

@@ -2,17 +2,11 @@ package io.github.cferg.musicbot.commands
 
 import io.github.cferg.musicbot.data.Configuration
 import io.github.cferg.musicbot.services.AudioPlayerService
-import me.aberrantfox.kjdautils.api.dsl.CommandSet
-import me.aberrantfox.kjdautils.api.dsl.arg
-import me.aberrantfox.kjdautils.api.dsl.commands
-import me.aberrantfox.kjdautils.extensions.jda.sendPrivateMessage
+import me.aberrantfox.kjdautils.api.dsl.*
 import me.aberrantfox.kjdautils.extensions.jda.toMember
-import me.aberrantfox.kjdautils.internal.arguments.IntegerRangeArg
-import me.aberrantfox.kjdautils.internal.arguments.MemberArg
-import me.aberrantfox.kjdautils.internal.arguments.UrlArg
+import me.aberrantfox.kjdautils.internal.arguments.*
 import me.aberrantfox.kjdautils.internal.di.PersistenceService
-import net.dv8tion.jda.api.entities.Member
-import net.dv8tion.jda.api.entities.TextChannel
+import net.dv8tion.jda.api.entities.*
 
 @CommandSet("Moderation")
 fun moderationCommands(audioPlayerService: AudioPlayerService, config: Configuration, persistenceService: PersistenceService) = commands {
@@ -70,7 +64,7 @@ fun moderationCommands(audioPlayerService: AudioPlayerService, config: Configura
         }
     }
 
-    var previousVolume: MutableMap<String, Int> = mutableMapOf()
+    val previousVolume: MutableMap<String, Int> = mutableMapOf()
 
     command("Mute") {
         description = "Mute bot, but keeps it playing."

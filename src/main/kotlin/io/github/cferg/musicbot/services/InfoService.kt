@@ -11,6 +11,7 @@ import java.awt.Color
 @Service
 class InfoService(private val configuration: Configuration) {
     private data class Properties(val version: String, val author: String, val repository: String)
+
     private val propFile = Properties::class.java.getResource("/properties.json").readText()
     private val project = Gson().fromJson(propFile, Properties::class.java)
 

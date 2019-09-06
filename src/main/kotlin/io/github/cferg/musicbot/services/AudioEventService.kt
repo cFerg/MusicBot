@@ -3,10 +3,8 @@ package io.github.cferg.musicbot.services
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayer
 import com.sedmelluq.discord.lavaplayer.player.event.AudioEventAdapter
 import com.sedmelluq.discord.lavaplayer.tools.FriendlyException
-import com.sedmelluq.discord.lavaplayer.track.AudioTrack
-import com.sedmelluq.discord.lavaplayer.track.AudioTrackEndReason
+import com.sedmelluq.discord.lavaplayer.track.*
 import me.aberrantfox.kjdautils.api.annotation.Service
-import me.aberrantfox.kjdautils.api.dsl.embed
 import me.aberrantfox.kjdautils.discord.Discord
 import net.dv8tion.jda.api.entities.TextChannel
 

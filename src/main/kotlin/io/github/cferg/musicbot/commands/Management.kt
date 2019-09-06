@@ -2,10 +2,8 @@ package io.github.cferg.musicbot.commands
 
 import io.github.cferg.musicbot.data.Configuration
 import io.github.cferg.musicbot.services.AudioPlayerService
-import me.aberrantfox.kjdautils.api.dsl.CommandSet
-import me.aberrantfox.kjdautils.api.dsl.commands
-import me.aberrantfox.kjdautils.internal.arguments.CharArg
-import me.aberrantfox.kjdautils.internal.arguments.RoleArg
+import me.aberrantfox.kjdautils.api.dsl.*
+import me.aberrantfox.kjdautils.internal.arguments.*
 import me.aberrantfox.kjdautils.internal.di.PersistenceService
 import net.dv8tion.jda.api.entities.Role
 

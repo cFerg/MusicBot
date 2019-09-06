@@ -5,10 +5,8 @@ import io.github.cferg.musicbot.extensions.toTimeString
 import me.aberrantfox.kjdautils.api.annotation.Service
 import me.aberrantfox.kjdautils.api.dsl.embed
 import me.aberrantfox.kjdautils.discord.Discord
-import net.dv8tion.jda.api.entities.Guild
-import net.dv8tion.jda.api.entities.MessageEmbed
+import net.dv8tion.jda.api.entities.*
 import java.awt.Color
-import java.util.*
 
 //TODO move these to a config
 val playerOnImage = listOf(
@@ -42,15 +40,15 @@ class EmbedService(private val discord: Discord) {
                 var midSize = 3
                 var maxSize = 5
 
-                if (nextSize >= 5){
+                if (nextSize >= 5) {
                     midSize = nextSize / 2
                     maxSize = nextSize
                 }
 
-                songList.forEachIndexed{ index , song ->
-                    when(index){
+                songList.forEachIndexed { index, song ->
+                    when (index) {
                         0 -> addField("Now Playing:",
-                                "- **Song**: [${track.info.title}](${track.info.uri})\n" +
+                            "- **Song**: [${track.info.title}](${track.info.uri})\n" +
                                 "- **Artist**: ${track.info.author}\n" +
                                 "- **Duration**: ${track.duration.toTimeString()}\n" +
                                 "- **Queued by**: ${guild.getMemberById(songList.first.memberID)?.asMention}")
@@ -59,19 +57,19 @@ class EmbedService(private val discord: Discord) {
 
                             addField("",
                                 "$index) [${song.track.info.title}](${song.track.info.uri})\n" +
-                                "- **Artist**: ${song.track.info.author}\n" +
-                                "- **Duration**: ${song.track.duration.toTimeString()}\n" +
-                                "- **Queued by**: ${guild.getMemberById(song.memberID)?.asMention}")
+                                    "- **Artist**: ${song.track.info.author}\n" +
+                                    "- **Duration**: ${song.track.duration.toTimeString()}\n" +
+                                    "- **Queued by**: ${guild.getMemberById(song.memberID)?.asMention}")
                         }
                         2, (maxSize - 1), maxSize -> {
                             addField("",
-                                    "$index) [${song.track.info.title}](${song.track.info.uri})\n" +
-                                            "- **Artist**: ${song.track.info.author}\n" +
-                                            "- **Duration**: ${song.track.duration.toTimeString()}\n" +
-                                            "- **Queued by**: ${guild.getMemberById(song.memberID)?.asMention}")
+                                "$index) [${song.track.info.title}](${song.track.info.uri})\n" +
+                                    "- **Artist**: ${song.track.info.author}\n" +
+                                    "- **Duration**: ${song.track.duration.toTimeString()}\n" +
+                                    "- **Queued by**: ${guild.getMemberById(song.memberID)?.asMention}")
                         }
                         midSize -> {
-                            addField("","**:**\n**:**\n**:**\n**:**")
+                            addField("", "**:**\n**:**\n**:**\n**:**")
                         }
                     }
                 }
@@ -81,7 +79,7 @@ class EmbedService(private val discord: Discord) {
 
     fun addSong(guild: Guild, memberID: String, track: AudioTrack) = embed {
         addField("**Added a new song:**",
-                "- **Song**: [${track.info.title}](${track.info.uri})\n" +
+            "- **Song**: [${track.info.title}](${track.info.uri})\n" +
                 "- **Artist**: ${track.info.author}\n" +
                 "- **Duration**: ${track.duration.toTimeString()}\n" +
                 "- **Queued by**: ${guild.getMemberById(memberID)?.asMention}")
