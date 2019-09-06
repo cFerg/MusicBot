@@ -16,6 +16,7 @@
 | Commands | Arguments       | Description                                                   |
 | -------- | --------------- | ------------------------------------------------------------- |
 | Clear    | <none>          | Removes all currently queued songs.                           |
+| Hoist    | URL             | Force the song to play, pushing the rest back one in queue.   |
 | Ignore   | Member          | Add the member to a bot blacklist.                            |
 | Mute     | <none>          | Mute bot, but keeps it playing.                               |
 | Restart  | <none>          | Replays the current song from the beginning.                  |

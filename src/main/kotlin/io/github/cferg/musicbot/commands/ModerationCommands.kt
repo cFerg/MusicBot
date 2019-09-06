@@ -6,13 +6,30 @@ import me.aberrantfox.kjdautils.api.dsl.CommandSet
 import me.aberrantfox.kjdautils.api.dsl.arg
 import me.aberrantfox.kjdautils.api.dsl.commands
 import me.aberrantfox.kjdautils.extensions.jda.sendPrivateMessage
+import me.aberrantfox.kjdautils.extensions.jda.toMember
 import me.aberrantfox.kjdautils.internal.arguments.IntegerRangeArg
 import me.aberrantfox.kjdautils.internal.arguments.MemberArg
+import me.aberrantfox.kjdautils.internal.arguments.UrlArg
 import me.aberrantfox.kjdautils.internal.di.PersistenceService
 import net.dv8tion.jda.api.entities.Member
+import net.dv8tion.jda.api.entities.TextChannel
 
 @CommandSet("Moderation")
 fun moderationCommands(audioPlayerService: AudioPlayerService, config: Configuration, persistenceService: PersistenceService) = commands {
+    command("Hoist") {
+        description = "Force the song to play, pushing the rest back one in queue."
+        requiresGuild = true
+        expect(UrlArg)
+        execute {
+            val url = it.args.component1() as String
+            val guild = it.guild!!
+            val channel = it.channel as TextChannel
+            val member = it.author.toMember(guild)!!
+
+            audioPlayerService.playSong(guild, member.id, channel, url, false)
+        }
+    }
+
     command("Restart") {
         description = "Replays the current song from the beginning."
         requiresGuild = true
@@ -33,11 +50,7 @@ fun moderationCommands(audioPlayerService: AudioPlayerService, config: Configura
         requiresGuild = true
         execute {
             val guild = it.guild!!
-            val guildAudio = audioPlayerService.guildAudioMap[guild.id]
-                ?: return@execute it.respond("Issue running Clear command.")
-
-            guildAudio.songQueue.clear()
-            it.respond("Cleared the current list of songs.")
+            audioPlayerService.clear(guild.id)
         }
     }
 

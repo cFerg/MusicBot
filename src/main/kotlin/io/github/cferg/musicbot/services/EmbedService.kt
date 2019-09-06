@@ -34,27 +34,46 @@ class EmbedService(private val discord: Discord) {
         return embed {
             val songList = guildAudio.songQueue
 
-            addField("Now Playing:",
-                "- **Song**: [${track.info.title}](${track.info.uri})\n" +
-                "- **Artist**: ${track.info.author}\n" +
-                "- **Duration**: ${track.duration.toTimeString()}\n" +
-                "- **Queued by**: ${guild.getMemberById(songList.first.memberID)?.asMention}")
+            if (songList.isNotEmpty()) {
+                color = if (isPlaying) Color.CYAN else Color.RED
+                thumbnail = if (isPlaying) playerOnImage.random() else playerOffImage.random()
 
-            color = if (isPlaying) Color.CYAN else Color.RED
-            thumbnail = if (isPlaying) playerOnImage.random() else playerOffImage.random()
+                val nextSize = songList.size - 1
+                var midSize = 3
+                var maxSize = 5
 
-            //TODO if there's a better way to just start at index 1 with songList, do that
-            if (songList.size > 1) {
-                val nextList = ArrayDeque<AudioPlayerService.Song>(songList)
-                nextList.removeFirst()
+                if (nextSize >= 5){
+                    midSize = nextSize / 2
+                    maxSize = nextSize
+                }
 
-                addField("", "__**Next Songs:**__")
-                nextList.forEachIndexed{ index , song ->
-                    addField("",
-                        "${index + 1}) [${song.track.info.title}](${song.track.info.uri})\n" +
-                        "- **Artist**: ${song.track.info.author}\n" +
-                        "- **Duration**: ${song.track.duration.toTimeString()}\n" +
-                        "- **Queued by**: ${guild.getMemberById(song.memberID)?.asMention}")
+                songList.forEachIndexed{ index , song ->
+                    when(index){
+                        0 -> addField("Now Playing:",
+                                "- **Song**: [${track.info.title}](${track.info.uri})\n" +
+                                "- **Artist**: ${track.info.author}\n" +
+                                "- **Duration**: ${track.duration.toTimeString()}\n" +
+                                "- **Queued by**: ${guild.getMemberById(songList.first.memberID)?.asMention}")
+                        1 -> {
+                            addField("", "__**Next Songs:**__")
+
+                            addField("",
+                                "$index) [${song.track.info.title}](${song.track.info.uri})\n" +
+                                "- **Artist**: ${song.track.info.author}\n" +
+                                "- **Duration**: ${song.track.duration.toTimeString()}\n" +
+                                "- **Queued by**: ${guild.getMemberById(song.memberID)?.asMention}")
+                        }
+                        2, (maxSize - 1), maxSize -> {
+                            addField("",
+                                    "$index) [${song.track.info.title}](${song.track.info.uri})\n" +
+                                            "- **Artist**: ${song.track.info.author}\n" +
+                                            "- **Duration**: ${song.track.duration.toTimeString()}\n" +
+                                            "- **Queued by**: ${guild.getMemberById(song.memberID)?.asMention}")
+                        }
+                        midSize -> {
+                            addField("","**:**\n**:**\n**:**\n**:**")
+                        }
+                    }
                 }
             }
         }

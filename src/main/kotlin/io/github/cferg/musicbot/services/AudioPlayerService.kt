@@ -48,15 +48,40 @@ class AudioPlayerService(private val discord: Discord, private val embedService:
         }
     }
 
-    fun playSong(guild: Guild, memberID: String, channel: TextChannel, songUrl: String) {
+    fun clear(guildID: String) {
+        val guild = discord.jda.getGuildById(guildID) ?: return
+        val guildAudio = guildAudioMap[guildID] ?: return
+        val previousTrack = guildAudio.songQueue.first ?: return
+        val textChannelID = previousTrack.channelID
+        val songList = guildAudio.songQueue
+        val textChannel = guild.getTextChannelById(textChannelID) ?: return
+
+        guildAudio.player.stopTrack()
+
+        for (track in songList){
+            trackGuildMap.remove(track.track.identifier)
+            songList.remove(track)
+        }
+
+        textChannel.sendMessage(embedService.noSong()).queue()
+    }
+
+    fun playSong(guild: Guild, memberID: String, channel: TextChannel, songUrl: String, noInterrupt: Boolean = true) {
         val guildAudio = guildAudioMap[guild.id] ?: return
 
         guildAudio.playerManager.loadItem(songUrl, object : AudioLoadResultHandler {
             override fun trackLoaded(track: AudioTrack) {
-                guildAudio.songQueue.add(Song(track, memberID, channel.id))
+                if (noInterrupt) {
+                    guildAudio.songQueue.add(Song(track, memberID, channel.id))
+                }else{
+                    guildAudio.songQueue.addFirst(Song(track, memberID, channel.id))
+                }
+
                 trackGuildMap[track.identifier] = guild.id
 
-                if (!guildAudio.player.startTrack(track, true)){
+                //TODO check if track had played before (make sure time restarts at 0) after a hoist was invoked
+                if (!guildAudio.player.startTrack(track, noInterrupt)){
+                    print("inner track")
                     val currentVC:VoiceChannel? = guild.getMemberById(memberID)?.voiceState?.channel ?:
                     return channel.sendMessage("Please join a voice channel to use this command.").queue()
 
@@ -66,6 +91,7 @@ class AudioPlayerService(private val discord: Discord, private val embedService:
 
             override fun playlistLoaded(playlist: AudioPlaylist) {
                 playlist.tracks.forEachIndexed { _ , track ->
+                    print("inner playlist")
                     trackLoaded(track)
                 }
             }
@@ -79,10 +105,10 @@ class AudioPlayerService(private val discord: Discord, private val embedService:
     fun nextSong(guildID: String){
         val guild = discord.jda.getGuildById(guildID) ?: return
         val guildAudio = guildAudioMap[guildID] ?: return
-        val previousTrack = guildAudio.songQueue.first
+        val previousTrack = guildAudio.songQueue.first ?: return
         val textChannelID = previousTrack.channelID
-        val textChannel = discord.jda.getTextChannelById(textChannelID) ?: return
-        val previousTrackInfo = previousTrack.track.info
+        val textChannel = guild.getTextChannelById(textChannelID) ?: return
+        val previousTrackInfo = previousTrack.track.info ?: return
 
         textChannel.sendMessage("Skipping ${previousTrackInfo.title} by ${previousTrackInfo.author}")
 
@@ -98,7 +124,7 @@ class AudioPlayerService(private val discord: Discord, private val embedService:
             guildAudio.player.playTrack(songList.first.track)
         }else{
             guildAudio.player.stopTrack()
-            textChannel.sendMessage(embedService.noSong())
+            textChannel.sendMessage(embedService.noSong()).queue()
         }
     }
 }
