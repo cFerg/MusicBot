@@ -16,11 +16,10 @@ fun managementCommands(audioPlayerService: AudioPlayerService, config: Configura
         requiresGuild = true
         execute {
             val guild = it.guild!!
-            val guildAudio = audioPlayerService.guildAudioMap[guild.id]
-                ?: return@execute it.respond("Issue running Disconnect command.")
+            val wasDisconnected = audioPlayerService.disconnect(guild)
 
-            guild.audioManager.closeAudioConnection()
-            guildAudio.player.stopTrack()
+            if (!wasDisconnected)
+                it.respond("Unable to disconnect.")
         }
     }
 

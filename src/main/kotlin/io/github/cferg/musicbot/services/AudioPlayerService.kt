@@ -127,4 +127,20 @@ class AudioPlayerService(private val discord: Discord, private val embedService:
             textChannel.sendMessage(embedService.noSong()).queue()
         }
     }
+
+    fun setPlayerVolume(guild: Guild, volume: Int): Boolean {
+        val player = guildAudioMap[guild.id]?.player ?: return false
+
+        player.volume = volume
+        return true
+    }
+
+    fun disconnect(guild: Guild): Boolean {
+        val guildAudio = guildAudioMap[guild.id] ?: return false
+
+        guild.audioManager.closeAudioConnection()
+        guildAudio.player.stopTrack()
+
+        return true
+    }
 }
