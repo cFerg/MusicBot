@@ -29,13 +29,7 @@ fun moderationCommands(audioPlayerService: AudioPlayerService, config: Configura
         requiresGuild = true
         execute {
             val guild = it.guild!!
-            val guildAudio = audioPlayerService.guildAudioMap[guild.id]
-                ?: return@execute it.respond("Issue running Restart command.")
-
-            val track = guildAudio.player.playingTrack
-
-            track.position = 0
-            it.respond("Restarted the song: ${track.info.title}")
+            audioPlayerService.restartTrack(guild)
         }
     }
 
@@ -53,32 +47,24 @@ fun moderationCommands(audioPlayerService: AudioPlayerService, config: Configura
         requiresGuild = true
         expect(IntegerRangeArg(min = 0, max = 100))
         execute {
+            val targetVolume = it.args.component1() as Int
             val guild = it.guild!!
-            val guildAudio = audioPlayerService.guildAudioMap[guild.id]
-                ?: return@execute it.respond("Issue running Volume command.")
 
-            val player = guildAudio.player
-
-            player.volume = it.args.component1() as Int
-            it.respond("Set player volume to ${player.volume}")
+            audioPlayerService.setPlayerVolume(guild, targetVolume)
+            it.respond("Volume set to $targetVolume")
         }
     }
-
-    val previousVolume: MutableMap<String, Int> = mutableMapOf()
 
     command("Mute") {
         description = "Mute bot, but keeps it playing."
         requiresGuild = true
         execute {
             val guild = it.guild!!
-            if (previousVolume.containsKey(guild.id))
+
+            if (audioPlayerService.isMuted(guild))
                 return@execute it.respond("The bot is already muted.")
 
-            val guildAudio = audioPlayerService.guildAudioMap[guild.id]
-                ?: return@execute it.respond("Issue running Volume command.")
-
-            previousVolume[guild.id] = guildAudio.player.volume
-            guildAudio.player.volume = 0
+            audioPlayerService.mutePlayingTrack(guild)
             it.respond("The bot is now muted.")
         }
     }
@@ -88,15 +74,11 @@ fun moderationCommands(audioPlayerService: AudioPlayerService, config: Configura
         requiresGuild = true
         execute {
             val guild = it.guild!!
-            if (!previousVolume.containsKey(guild.id))
-                return@execute it.respond("The bot is currently not muted - check the volume level.")
 
-            val guildAudio = audioPlayerService.guildAudioMap[guild.id]
-                ?: return@execute it.respond("Issue running Unmute command.")
+            if (!audioPlayerService.isMuted(guild))
+                return@execute it.respond("The bot is not muted.")
 
-            //If an error occurs, default volume to 30 (change to configurable later)
-            guildAudio.player.volume = previousVolume[guild.id] ?: 30
-            previousVolume.remove(guild.id)
+            audioPlayerService.unmutePlayingTrack(guild)
             it.respond("The bot is now unmuted.")
         }
     }

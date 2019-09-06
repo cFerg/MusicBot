@@ -15,8 +15,8 @@ class InfoService(private val configuration: Configuration) {
     private val propFile = Properties::class.java.getResource("/properties.json").readText()
     private val project = Gson().fromJson(propFile, Properties::class.java)
 
-    val version = project.version
-    val author = project.author
+    private val version = project.version
+    private val author = project.author
     val source = project.repository
 
     fun botInfo(guild: Guild) = embed {

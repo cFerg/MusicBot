@@ -27,26 +27,22 @@ fun playerCommands(audioPlayerService: AudioPlayerService, config: Configuration
         description = "Skips the current song."
         requiresGuild = true
         execute {
-            val guildAudio = audioPlayerService.guildAudioMap[it.guild!!.id]
-                ?: return@execute it.respond("Issue running Skip command.")
-
-            if (guildAudio.songQueue.isNullOrEmpty())
-                return@execute it.respond("No songs currently queued.")
-
             val guild = it.guild!!
+            val currentSong = audioPlayerService.fetchNextSong(guild)
+                ?: return@execute it.respond("No songs currently queued.")
+
             val member = it.author.toMember(guild)!!
             val staffRole = config.guildConfigurations[guild.id]?.staffRole
-
-            val currentSong = guildAudio.songQueue.first ?: return@execute it.respond("No songs currently queued.")
-
-            val queuedSong = it.author.id == guildAudio.songQueue.first.memberID
+            val queuedSong = it.author.id == currentSong.memberID
             val isStaff = member.roles.any { staff -> staff.id == staffRole }
 
             if (!queuedSong && !isStaff)
                 return@execute it.respond("Sorry, only the person who queued the song or staff can skip.")
 
+            val songInfo = currentSong.track.info
+
             audioPlayerService.nextSong(guild.id)
-            it.respond("Skipped song: ${currentSong.track.info.title} by ${currentSong.track.info.author}")
+            it.respond("Skipped song: ${songInfo.title} by ${songInfo.author}")
         }
     }
 
