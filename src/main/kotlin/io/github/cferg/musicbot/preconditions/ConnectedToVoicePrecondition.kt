@@ -4,7 +4,7 @@ import io.github.cferg.musicbot.utility.Constants
 import me.aberrantfox.kjdautils.api.dsl.*
 import me.aberrantfox.kjdautils.internal.command.*
 
-@Precondition
+@Precondition(2)
 fun isConnectedToVoiceChannel() = exit@{ event: CommandEvent ->
     event.guild ?: return@exit Fail("This command must be executed in a text channel.")
 

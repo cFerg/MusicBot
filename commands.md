@@ -6,11 +6,13 @@
 | (Argument) | This argument is optional. |
 
 ## Management
-| Commands   | Arguments | Description                                    |
-| ---------- | --------- | ---------------------------------------------- |
-| Disconnect | <none>    | Remove the bot from its current voice channel. |
-| Prefix     | Character | Sets the prefix for the bot.                   |
-| SetStaff   | Role      | Sets a Staff role for moderation commands      |
+| Commands   | Arguments         | Description                                            |
+| ---------- | ----------------- | ------------------------------------------------------ |
+| Disconnect | <none>            | Remove the bot from its current voice channel.         |
+| Prefix     | Character         | Sets the prefix for the bot.                           |
+| SetLogging | TextChannel       | Sets a Logging Channel to send bot command invokes to. |
+| SetStaff   | Role              | Sets a Staff role for moderation commands              |
+| Setup      | Role, TextChannel | Setups the configuration for a guild.                  |
 
 ## Moderation
 | Commands | Arguments       | Description                                                   |

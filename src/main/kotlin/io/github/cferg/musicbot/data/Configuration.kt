@@ -6,6 +6,6 @@ import me.aberrantfox.kjdautils.api.annotation.Data
 data class Configuration(var prefix: String = "$",
                          var guildConfigurations: MutableMap<String, GuildInfo> = mutableMapOf())
 
-data class GuildInfo(var staffRole: String = "insert-role-id",
-                     var loggingChannelID: String = "insert-channel-ID",
+data class GuildInfo(var staffRole: String = "",
+                     var loggingChannelID: String = "",
                      var ignoreList: MutableList<String> = mutableListOf())
