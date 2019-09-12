@@ -38,7 +38,7 @@ fun moderationCommands(audioPlayerService: AudioPlayerService, config: Configura
         requiresGuild = true
         execute {
             val guild = it.guild!!
-            audioPlayerService.clear(guild.id)
+            audioPlayerService.clear(guild)
         }
     }
 

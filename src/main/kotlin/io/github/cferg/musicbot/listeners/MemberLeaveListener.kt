@@ -9,6 +9,6 @@ class MemberLeaveListener(private val audioPlayerService: AudioPlayerService) {
 
     @Subscribe
     fun onGuildMemberLeave(event: GuildMemberLeaveEvent) {
-        audioPlayerService.clearByMember(event.guild.id, event.user.discriminator)
+        audioPlayerService.clearByMember(event.guild, event.user.discriminator)
     }
 }

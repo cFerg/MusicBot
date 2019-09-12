@@ -21,14 +21,14 @@ class AudioEventHandler(private val audioPlayerService: AudioPlayerService,
 
     override fun onTrackEnd(player: AudioPlayer, track: AudioTrack, endReason: AudioTrackEndReason) {
         if (endReason.mayStartNext || endReason == AudioTrackEndReason.FINISHED)
-            audioPlayerService.nextSong(guild.id)
+            audioPlayerService.nextSong(guild)
     }
 
     override fun onTrackException(player: AudioPlayer, track: AudioTrack, exception: FriendlyException) {
-        audioPlayerService.nextSong(guild.id)
+        audioPlayerService.nextSong(guild)
     }
 
     override fun onTrackStuck(player: AudioPlayer, track: AudioTrack, thresholdMs: Long) {
-        audioPlayerService.nextSong(guild.id)
+        audioPlayerService.nextSong(guild)
     }
 }

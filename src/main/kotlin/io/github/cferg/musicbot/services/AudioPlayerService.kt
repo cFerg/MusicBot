@@ -6,12 +6,11 @@ import com.sedmelluq.discord.lavaplayer.tools.FriendlyException
 import com.sedmelluq.discord.lavaplayer.track.*
 import io.github.cferg.musicbot.utility.*
 import me.aberrantfox.kjdautils.api.annotation.Service
-import me.aberrantfox.kjdautils.discord.Discord
 import net.dv8tion.jda.api.entities.*
 import java.util.ArrayDeque
 
 @Service
-class AudioPlayerService(private val discord: Discord, private val embedService: EmbedService) {
+class AudioPlayerService(private val embedService: EmbedService) {
     data class Song(val track: AudioTrack, val memberID: String, val channelID: String)
     private data class GuildAudio(val player: AudioPlayer,
                                   val playerManager: DefaultAudioPlayerManager,
@@ -19,12 +18,6 @@ class AudioPlayerService(private val discord: Discord, private val embedService:
                                   var previousVolume: Int = 30)
 
     private val guildAudioMap = mutableMapOf<String, GuildAudio>()
-
-    init {
-        discord.jda.guilds.forEach { guild ->
-            guildAudioMap[guild.id] = guild.toGuildAudio()
-        }
-    }
 
     private fun Guild.toGuildAudio(): GuildAudio {
         val playerManager = DefaultAudioPlayerManager()
@@ -42,16 +35,15 @@ class AudioPlayerService(private val discord: Discord, private val embedService:
 
     private fun getGuildAudio(guild: Guild) = guildAudioMap.getOrPut(guild.id) { guild.toGuildAudio() }
 
-    fun clearByMember(guildID: String, memberID: String) {
-        val guildAudio = guildAudioMap[guildID] ?: return
+    fun clearByMember(guild: Guild, memberID: String) {
+        val guildAudio = getGuildAudio(guild)
         guildAudio.songQueue.removeIf {
             it.memberID == memberID
         }
     }
 
-    fun clear(guildID: String) {
-        val guild = discord.jda.getGuildById(guildID) ?: return
-        val guildAudio = guildAudioMap[guildID] ?: return
+    fun clear(guild: Guild) {
+        val guildAudio = getGuildAudio(guild)
         val previousTrack = guildAudio.songQueue.first ?: return
         val textChannelID = previousTrack.channelID
         val songList = guildAudio.songQueue
@@ -64,7 +56,7 @@ class AudioPlayerService(private val discord: Discord, private val embedService:
     }
 
     fun playSong(guild: Guild, memberID: String, channel: TextChannel, songUrl: String, noInterrupt: Boolean = true) {
-        val guildAudio = guildAudioMap[guild.id] ?: return
+        val guildAudio = getGuildAudio(guild)
 
         guildAudio.playerManager.loadItem(songUrl, object : AudioLoadResultHandler {
             override fun trackLoaded(track: AudioTrack) {
@@ -97,9 +89,8 @@ class AudioPlayerService(private val discord: Discord, private val embedService:
         })
     }
 
-    fun nextSong(guildID: String) {
-        val guild = discord.jda.getGuildById(guildID) ?: return
-        val guildAudio = guildAudioMap[guildID] ?: return
+    fun nextSong(guild: Guild) {
+        val guildAudio = getGuildAudio(guild)
         val previousTrack = guildAudio.songQueue.first ?: return
         val textChannelID = previousTrack.channelID
         val textChannel = guild.getTextChannelById(textChannelID) ?: return
@@ -112,7 +103,7 @@ class AudioPlayerService(private val discord: Discord, private val embedService:
 
         if (songList.isNotEmpty()) {
             val currentVC = guild.getMemberById(songList.first.memberID)?.voiceState?.channel
-                ?: return nextSong(guildID)
+                ?: return nextSong(guild)
 
             guild.audioManager.openAudioConnection(currentVC)
 
@@ -124,7 +115,7 @@ class AudioPlayerService(private val discord: Discord, private val embedService:
     }
 
     fun setPlayerVolume(guild: Guild, volume: Int): Boolean {
-        val player = guildAudioMap[guild.id]?.player ?: return false
+        val player = getGuildAudio(guild).player
 
         player.volume = volume
         return true

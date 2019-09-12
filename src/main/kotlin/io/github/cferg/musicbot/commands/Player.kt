@@ -41,7 +41,7 @@ fun playerCommands(audioPlayerService: AudioPlayerService, config: Configuration
 
             val songInfo = currentSong.track.info
 
-            audioPlayerService.nextSong(guild.id)
+            audioPlayerService.nextSong(guild)
             it.respond("Skipped song: ${songInfo.title} by ${songInfo.author}")
         }
     }
