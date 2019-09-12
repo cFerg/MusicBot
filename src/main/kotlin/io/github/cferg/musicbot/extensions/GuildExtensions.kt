@@ -66,7 +66,6 @@ fun Guild.playSong(memberID: String, channel: TextChannel, songUrl: String, noIn
 
             //TODO check if track had played before (make sure time restarts at 0) after a hoist was invoked
             if (!guildAudio.player.startTrack(track, noInterrupt)) {
-                print("inner track")
                 val currentVC: VoiceChannel? = getMemberById(memberID)?.voiceState?.channel
                     ?: return channel.sendMessage("Please join a voice channel to use this command.").queue()
 
@@ -76,7 +75,6 @@ fun Guild.playSong(memberID: String, channel: TextChannel, songUrl: String, noIn
 
         override fun playlistLoaded(playlist: AudioPlaylist) {
             playlist.tracks.forEachIndexed { _, track ->
-                print("inner playlist")
                 trackLoaded(track)
             }
         }
@@ -94,7 +92,7 @@ fun Guild.nextSong() {
     val textChannel = getTextChannelById(textChannelID) ?: return
     val previousTrackInfo = previousTrack.track.info ?: return
 
-    textChannel.sendMessage("Skipping ${previousTrackInfo.title} by ${previousTrackInfo.author}")
+    textChannel.sendMessage("Skipping ${previousTrackInfo.title} by ${previousTrackInfo.author}").queue()
 
     val songList = guildAudio.songQueue
     songList.removeFirst()

@@ -2,6 +2,7 @@ package io.github.cferg.musicbot.commands
 
 import io.github.cferg.musicbot.data.Configuration
 import io.github.cferg.musicbot.extensions.*
+import io.github.cferg.musicbot.utility.displayNoSongEmbed
 import io.github.cferg.musicbot.utility.displayTrackEmbed
 import me.aberrantfox.kjdautils.api.dsl.*
 import me.aberrantfox.kjdautils.extensions.jda.toMember
@@ -30,7 +31,7 @@ fun playerCommands(config: Configuration) = commands {
         execute {
             val guild = it.guild!!
             val currentSong = guild.fetchNextSong()
-                ?: return@execute it.respond("No songs currently queued.")
+                ?: return@execute it.respond(displayNoSongEmbed())
 
             val member = it.author.toMember(guild)!!
             val staffRole = config.guildConfigurations[guild.id]?.staffRole
@@ -40,10 +41,7 @@ fun playerCommands(config: Configuration) = commands {
             if (!queuedSong && !isStaff)
                 return@execute it.respond("Sorry, only the person who queued the song or staff can skip.")
 
-            val songInfo = currentSong.track.info
-
             guild.nextSong()
-            it.respond("Skipped song: ${songInfo.title} by ${songInfo.author}")
         }
     }
 
