@@ -1,10 +1,8 @@
 package io.github.cferg.musicbot.preconditions
 
 import io.github.cferg.musicbot.data.Configuration
-import me.aberrantfox.kjdautils.api.dsl.CommandEvent
-import me.aberrantfox.kjdautils.api.dsl.Precondition
-import me.aberrantfox.kjdautils.internal.command.Fail
-import me.aberrantfox.kjdautils.internal.command.Pass
+import me.aberrantfox.kjdautils.api.dsl.*
+import me.aberrantfox.kjdautils.internal.command.*
 
 @Precondition(0)
 fun isConfigured(config: Configuration) = exit@{ event: CommandEvent ->

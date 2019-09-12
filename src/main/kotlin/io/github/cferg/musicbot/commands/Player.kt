@@ -1,14 +1,15 @@
 package io.github.cferg.musicbot.commands
 
 import io.github.cferg.musicbot.data.Configuration
-import io.github.cferg.musicbot.services.*
+import io.github.cferg.musicbot.extensions.*
+import io.github.cferg.musicbot.utility.displayTrackEmbed
 import me.aberrantfox.kjdautils.api.dsl.*
 import me.aberrantfox.kjdautils.extensions.jda.toMember
 import me.aberrantfox.kjdautils.internal.arguments.UrlArg
 import net.dv8tion.jda.api.entities.TextChannel
 
 @CommandSet("Player")
-fun playerCommands(audioPlayerService: AudioPlayerService, config: Configuration, embedService: EmbedService) = commands {
+fun playerCommands(config: Configuration) = commands {
     command("Play") {
         description = "Play the song listed - If a song is already playing, it's added to a queue."
         requiresGuild = true
@@ -19,7 +20,7 @@ fun playerCommands(audioPlayerService: AudioPlayerService, config: Configuration
             val channel = it.channel as TextChannel
             val member = it.author.toMember(guild)!!
 
-            audioPlayerService.playSong(guild, member.id, channel, url)
+            guild.playSong(member.id, channel, url)
         }
     }
 
@@ -28,7 +29,7 @@ fun playerCommands(audioPlayerService: AudioPlayerService, config: Configuration
         requiresGuild = true
         execute {
             val guild = it.guild!!
-            val currentSong = audioPlayerService.fetchNextSong(guild)
+            val currentSong = guild.fetchNextSong()
                 ?: return@execute it.respond("No songs currently queued.")
 
             val member = it.author.toMember(guild)!!
@@ -41,7 +42,7 @@ fun playerCommands(audioPlayerService: AudioPlayerService, config: Configuration
 
             val songInfo = currentSong.track.info
 
-            audioPlayerService.nextSong(guild)
+            guild.nextSong()
             it.respond("Skipped song: ${songInfo.title} by ${songInfo.author}")
         }
     }
@@ -51,7 +52,7 @@ fun playerCommands(audioPlayerService: AudioPlayerService, config: Configuration
         requiresGuild = true
         execute {
             val guild = it.guild!!
-            it.respond(embedService.trackDisplay(guild, audioPlayerService))
+            it.respond(displayTrackEmbed(guild))
         }
     }
 }

@@ -1,7 +1,7 @@
 package io.github.cferg.musicbot.commands
 
 import io.github.cferg.musicbot.data.Configuration
-import io.github.cferg.musicbot.services.AudioPlayerService
+import io.github.cferg.musicbot.extensions.*
 import me.aberrantfox.kjdautils.api.dsl.*
 import me.aberrantfox.kjdautils.extensions.jda.toMember
 import me.aberrantfox.kjdautils.internal.arguments.*
@@ -9,7 +9,7 @@ import me.aberrantfox.kjdautils.internal.di.PersistenceService
 import net.dv8tion.jda.api.entities.*
 
 @CommandSet("Moderation")
-fun moderationCommands(audioPlayerService: AudioPlayerService, config: Configuration, persistenceService: PersistenceService) = commands {
+fun moderationCommands(config: Configuration, persistenceService: PersistenceService) = commands {
     command("Hoist") {
         description = "Force the song to play, pushing the rest back one in queue."
         requiresGuild = true
@@ -20,7 +20,7 @@ fun moderationCommands(audioPlayerService: AudioPlayerService, config: Configura
             val channel = it.channel as TextChannel
             val member = it.author.toMember(guild)!!
 
-            audioPlayerService.playSong(guild, member.id, channel, url, false)
+            guild.playSong(member.id, channel, url, false)
         }
     }
 
@@ -29,7 +29,7 @@ fun moderationCommands(audioPlayerService: AudioPlayerService, config: Configura
         requiresGuild = true
         execute {
             val guild = it.guild!!
-            audioPlayerService.restartTrack(guild)
+            guild.restartTrack()
         }
     }
 
@@ -38,7 +38,7 @@ fun moderationCommands(audioPlayerService: AudioPlayerService, config: Configura
         requiresGuild = true
         execute {
             val guild = it.guild!!
-            audioPlayerService.clear(guild)
+            guild.clear()
         }
     }
 
@@ -50,7 +50,7 @@ fun moderationCommands(audioPlayerService: AudioPlayerService, config: Configura
             val targetVolume = it.args.component1() as Int
             val guild = it.guild!!
 
-            audioPlayerService.setPlayerVolume(guild, targetVolume)
+            guild.setPlayerVolume(targetVolume)
             it.respond("Volume set to $targetVolume")
         }
     }
@@ -61,10 +61,10 @@ fun moderationCommands(audioPlayerService: AudioPlayerService, config: Configura
         execute {
             val guild = it.guild!!
 
-            if (audioPlayerService.isMuted(guild))
+            if (guild.isMuted())
                 return@execute it.respond("The bot is already muted.")
 
-            audioPlayerService.mutePlayingTrack(guild)
+            guild.mutePlayingTrack()
             it.respond("The bot is now muted.")
         }
     }
@@ -75,10 +75,10 @@ fun moderationCommands(audioPlayerService: AudioPlayerService, config: Configura
         execute {
             val guild = it.guild!!
 
-            if (!audioPlayerService.isMuted(guild))
+            if (!guild.isMuted())
                 return@execute it.respond("The bot is not muted.")
 
-            audioPlayerService.unmutePlayingTrack(guild)
+            guild.unmutePlayingTrack()
             it.respond("The bot is now unmuted.")
         }
     }

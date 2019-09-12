@@ -1,22 +1,20 @@
 package io.github.cferg.musicbot.commands
 
-import io.github.cferg.musicbot.data.Configuration
-import io.github.cferg.musicbot.data.GuildInfo
-import io.github.cferg.musicbot.services.AudioPlayerService
+import io.github.cferg.musicbot.data.*
+import io.github.cferg.musicbot.extensions.disconnect
 import me.aberrantfox.kjdautils.api.dsl.*
 import me.aberrantfox.kjdautils.internal.arguments.*
 import me.aberrantfox.kjdautils.internal.di.PersistenceService
-import net.dv8tion.jda.api.entities.Role
-import net.dv8tion.jda.api.entities.TextChannel
+import net.dv8tion.jda.api.entities.*
 
 @CommandSet("Management")
-fun managementCommands(audioPlayerService: AudioPlayerService, config: Configuration, persistenceService: PersistenceService) = commands {
+fun managementCommands(config: Configuration, persistenceService: PersistenceService) = commands {
     command("Disconnect") {
         description = "Remove the bot from its current voice channel."
         requiresGuild = true
         execute {
             val guild = it.guild!!
-            val wasDisconnected = audioPlayerService.disconnect(guild)
+            val wasDisconnected = guild.disconnect()
 
             if (!wasDisconnected)
                 it.respond("Unable to disconnect.")
