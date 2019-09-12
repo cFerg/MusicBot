@@ -109,11 +109,10 @@ fun Guild.nextSong() {
     }
 }
 
-fun Guild.setPlayerVolume(volume: Int): Boolean {
+fun Guild.setPlayerVolume(volume: Int) {
     val player = getGuildAudio().player
 
     player.volume = volume
-    return true
 }
 
 fun Guild.fetchNextSong() = fetchUpcomingSongs().firstOrNull()
@@ -131,28 +130,24 @@ fun Guild.restartTrack(): Boolean {
     return true
 }
 
-fun Guild.mutePlayingTrack(): Boolean {
+fun Guild.mutePlayingTrack() {
     val guildAudio = getGuildAudio()
     val player = guildAudio.player
 
     guildAudio.previousVolume = player.volume
     player.volume = 0
-    return true
 }
 
-fun Guild.unmutePlayingTrack(): Boolean {
+fun Guild.unmutePlayingTrack() {
     val guildAudio = getGuildAudio()
     val player = guildAudio.player
 
     player.volume = guildAudio.previousVolume
-    return true
 }
 
-fun Guild.disconnect(): Boolean {
+fun Guild.disconnect() {
     val guildAudio = getGuildAudio()
 
     audioManager.closeAudioConnection()
     guildAudio.player.stopTrack()
-
-    return true
 }

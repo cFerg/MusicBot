@@ -14,10 +14,7 @@ fun managementCommands(config: Configuration, persistenceService: PersistenceSer
         requiresGuild = true
         execute {
             val guild = it.guild!!
-            val wasDisconnected = guild.disconnect()
-
-            if (!wasDisconnected)
-                it.respond("Unable to disconnect.")
+            guild.disconnect()
         }
     }
 

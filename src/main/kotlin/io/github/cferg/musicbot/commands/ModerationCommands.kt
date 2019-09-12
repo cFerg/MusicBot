@@ -29,7 +29,9 @@ fun moderationCommands(config: Configuration, persistenceService: PersistenceSer
         requiresGuild = true
         execute {
             val guild = it.guild!!
-            guild.restartTrack()
+            if(!guild.restartTrack()){
+                it.respond("No song currently queued.")
+            }
         }
     }
 

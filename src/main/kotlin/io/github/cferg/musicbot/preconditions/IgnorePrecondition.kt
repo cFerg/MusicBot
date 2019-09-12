@@ -11,8 +11,7 @@ fun isIgnored(config: Configuration) = exit@{ event: CommandEvent ->
     if (event.channel !is TextChannel) return@exit Fail("**Failure:** This command must be executed in a text channel.")
     val guild = event.guild ?: return@exit Fail("**Failure:** This command must be ran in a guild.")
     val eventMember = event.author.toMember(guild)!!
-    val guildConfig = config.guildConfigurations[event.guild!!.id] ?:
-    return@exit Pass
+    val guildConfig = config.guildConfigurations[event.guild!!.id] ?: return@exit Pass
 
     if (!guildConfig.ignoreList.contains(eventMember.id)) return@exit Pass
 

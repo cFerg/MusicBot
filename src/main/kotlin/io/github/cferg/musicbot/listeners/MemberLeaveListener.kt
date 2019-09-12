@@ -9,6 +9,6 @@ class MemberLeaveListener {
 
     @Subscribe
     fun onGuildMemberLeave(event: GuildMemberLeaveEvent) {
-        event.guild.clearByMember(event.user.discriminator)
+        event.guild.clearByMember(event.user.id)
     }
 }
