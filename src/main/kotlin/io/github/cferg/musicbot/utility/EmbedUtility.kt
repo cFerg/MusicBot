@@ -31,7 +31,7 @@ fun displayTrackEmbed(guild: Guild): MessageEmbed {
             thumbnail = if (isPlaying) playerOnImage.random() else playerOffImage.random()
 
             val nextSize = songList.size - 1
-            val midSize = if (nextSize >= 5) nextSize / 2 else 3
+            val midSize = if (nextSize >= 5) nextSize / 2 else -1
             val maxSize = if (nextSize >= 5) nextSize else 5
 
             songList.forEachIndexed { index, song ->

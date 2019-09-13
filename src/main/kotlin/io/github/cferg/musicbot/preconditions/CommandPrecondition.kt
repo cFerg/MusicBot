@@ -16,7 +16,15 @@ fun isCommand(config: Configuration) = exit@{ event: CommandEvent ->
         val guildConfig = config.guildConfigurations[guild.id] ?: return@exit Pass
         val textChannel = guild.getTextChannelById(guildConfig.loggingChannelID) ?: return@exit Pass
 
-        textChannel.sendMessage("${author.fullName()} | ID: ${author.idLong} | invoked `${commandStruct.commandName}` in <#${channel.idLong}>").queue()
+        var display = "${author.fullName()} | ID: ${author.idLong} | invoked `${commandStruct.commandName}` "
+
+        for (i in event.commandStruct.commandArgs){
+            display += "`$i` "
+        }
+
+        display += "in <#${channel.idLong}>"
+
+        textChannel.sendMessage(display).queue()
 
         return@exit Pass
     }

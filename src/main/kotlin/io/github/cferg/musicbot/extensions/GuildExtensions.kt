@@ -4,9 +4,11 @@ import com.sedmelluq.discord.lavaplayer.player.*
 import com.sedmelluq.discord.lavaplayer.source.AudioSourceManagers
 import com.sedmelluq.discord.lavaplayer.tools.FriendlyException
 import com.sedmelluq.discord.lavaplayer.track.*
+import io.github.cferg.musicbot.data.Configuration
 import io.github.cferg.musicbot.utility.*
 import net.dv8tion.jda.api.entities.*
-import java.util.ArrayDeque
+import java.util.*
+import kotlin.concurrent.timerTask
 
 data class Song(val track: AudioTrack, val memberID: String, val channelID: String)
 
@@ -33,11 +35,17 @@ private fun Guild.toGuildAudio(): GuildAudio {
 
 private fun Guild.getGuildAudio() = guildAudioMap.getOrPut(id) { toGuildAudio() }
 
-fun Guild.clearByMember(memberID: String) {
+fun Guild.clearByMember(memberID: String): List<Song> {
     val guildAudio = getGuildAudio()
+    val songList:MutableList<Song> = mutableListOf()
+
+    songList.addAll(guildAudio.songQueue.filter { it.memberID == memberID })
+
     guildAudio.songQueue.removeIf {
         it.memberID == memberID
     }
+
+    return songList
 }
 
 fun Guild.clear() {
@@ -64,8 +72,7 @@ fun Guild.playSong(memberID: String, channel: TextChannel, songUrl: String, noIn
                 guildAudio.songQueue.addFirst(Song(track, memberID, channel.id))
             }
 
-            //TODO check if track had played before (make sure time restarts at 0) after a hoist was invoked
-            if (!guildAudio.player.startTrack(track, noInterrupt)) {
+            if (guildAudio.player.startTrack(track, noInterrupt)) {
                 val currentVC: VoiceChannel? = getMemberById(memberID)?.voiceState?.channel
                     ?: return channel.sendMessage("Please join a voice channel to use this command.").queue()
 
@@ -106,6 +113,7 @@ fun Guild.nextSong() {
     } else {
         guildAudio.player.stopTrack()
         textChannel.sendMessage(displayNoSongEmbed()).queue()
+        startTimer()
     }
 }
 
@@ -150,4 +158,19 @@ fun Guild.disconnect() {
 
     audioManager.closeAudioConnection()
     guildAudio.player.stopTrack()
+}
+
+fun Guild.startTimer() {
+    var time = 30
+    Timer().scheduleAtFixedRate(timerTask {
+        if (time > 0){
+            if(fetchNextSong() != null){
+                this.cancel()
+            }
+            time--
+        }else {
+            disconnect()
+            this.cancel()
+        }
+    },1000, 10000)
 }

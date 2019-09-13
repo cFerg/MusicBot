@@ -19,8 +19,9 @@ class AudioEventHandler(private val guild: Guild) : AudioEventAdapter() {
     }
 
     override fun onTrackEnd(player: AudioPlayer, track: AudioTrack, endReason: AudioTrackEndReason) {
-        if (endReason.mayStartNext || endReason == AudioTrackEndReason.FINISHED)
+        if (endReason.mayStartNext || endReason == AudioTrackEndReason.FINISHED) {
             guild.nextSong()
+        }
     }
 
     override fun onTrackException(player: AudioPlayer, track: AudioTrack, exception: FriendlyException) {
