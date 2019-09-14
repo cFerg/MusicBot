@@ -4,7 +4,6 @@ import com.sedmelluq.discord.lavaplayer.player.*
 import com.sedmelluq.discord.lavaplayer.source.AudioSourceManagers
 import com.sedmelluq.discord.lavaplayer.tools.FriendlyException
 import com.sedmelluq.discord.lavaplayer.track.*
-import io.github.cferg.musicbot.data.Configuration
 import io.github.cferg.musicbot.utility.*
 import net.dv8tion.jda.api.entities.*
 import java.util.*
@@ -35,17 +34,21 @@ private fun Guild.toGuildAudio(): GuildAudio {
 
 private fun Guild.getGuildAudio() = guildAudioMap.getOrPut(id) { toGuildAudio() }
 
-fun Guild.clearByMember(memberID: String): List<Song> {
+fun Guild.clearByMember(memberID: String): Boolean {
     val guildAudio = getGuildAudio()
-    val songList:MutableList<Song> = mutableListOf()
 
-    songList.addAll(guildAudio.songQueue.filter { it.memberID == memberID })
+    val preCount = guildAudio.songQueue.size
 
     guildAudio.songQueue.removeIf {
         it.memberID == memberID
     }
 
-    return songList
+    if (preCount != guildAudio.songQueue.size){
+        nextSong(false)
+        return true
+    }
+
+    return false
 }
 
 fun Guild.clear() {
@@ -92,17 +95,19 @@ fun Guild.playSong(memberID: String, channel: TextChannel, songUrl: String, noIn
     })
 }
 
-fun Guild.nextSong() {
+fun Guild.nextSong(safe:Boolean = true) {
     val guildAudio = getGuildAudio()
     val previousTrack = guildAudio.songQueue.first ?: return
     val textChannelID = previousTrack.channelID
     val textChannel = getTextChannelById(textChannelID) ?: return
     val previousTrackInfo = previousTrack.track.info ?: return
 
-    textChannel.sendMessage("Skipping ${previousTrackInfo.title} by ${previousTrackInfo.author}").queue()
-
     val songList = guildAudio.songQueue
-    songList.removeFirst()
+
+    if(safe) {
+        textChannel.sendMessage("Skipping ${previousTrackInfo.title} by ${previousTrackInfo.author}").queue()
+        songList.removeFirst()
+    }
 
     if (songList.isNotEmpty()) {
         val currentVC = getMemberById(songList.first.memberID)?.voiceState?.channel ?: return nextSong()
