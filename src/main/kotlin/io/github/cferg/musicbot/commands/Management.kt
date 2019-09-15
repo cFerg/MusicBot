@@ -79,6 +79,7 @@ fun managementCommands(config: Configuration, persistenceService: PersistenceSer
         expect(CharArg)
         execute {
             config.prefix = it.args.component1() as String
+            persistenceService.save(config)
         }
     }
 }
