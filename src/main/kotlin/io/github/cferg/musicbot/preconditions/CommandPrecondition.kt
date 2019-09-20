@@ -46,7 +46,7 @@ fun getCommand(config: Configuration) = exit@{ event: CommandEvent ->
         }
 
         val display = embed {
-            color = Color.yellow
+            color = Color(0xFFDA33)
             addField("${author.fullName()} | ID: ${author.idLong} | invoked command:",
                     "${commandStruct.commandName} $argList in <#${channel.idLong}>")
         }

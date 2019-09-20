@@ -38,12 +38,17 @@ private fun Guild.getPlayer() = getGuildAudio().player
 fun Guild.clearByMember(memberID: String): Boolean {
     val preCount = fetchUpcomingSongs().size
 
+    val current = fetchCurrentSong() ?: return false
+
+    val removeFirst = (current.memberID == memberID)
+
     fetchUpcomingSongs().removeIf {
         it.memberID == memberID
     }
 
     if (preCount != fetchUpcomingSongs().size){
-        nextSong()
+        if (removeFirst){ nextSong() }
+
         return true
     }
 
@@ -61,6 +66,7 @@ fun Guild.clear() {
 
     stopTrack()
     songList.clear()
+    startTimer()
 
     textChannel.sendMessage(displayNoSongEmbed()).queue()
 }

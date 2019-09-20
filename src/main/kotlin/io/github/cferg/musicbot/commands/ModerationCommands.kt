@@ -41,7 +41,6 @@ fun moderationCommands(config: Configuration, persistenceService: PersistenceSer
         execute {
             val guild = it.guild!!
             guild.clear()
-            guild.startTimer()
         }
     }
 
@@ -103,6 +102,7 @@ fun moderationCommands(config: Configuration, persistenceService: PersistenceSer
 
             guildConfig.ignoreList.add(member.id)
             persistenceService.save(config)
+            guild.clearByMember(member.id)
             it.respond("${member.effectiveName} is now added to the bot blacklist.")
         }
     }

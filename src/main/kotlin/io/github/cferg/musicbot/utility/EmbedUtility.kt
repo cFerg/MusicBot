@@ -23,7 +23,7 @@ fun currentTrackEmbed(guild: Guild): MessageEmbed {
     val isPlaying = guild.isTrackPlaying()
 
     return embed {
-        color = if (isPlaying) Color.CYAN else Color.RED
+        color = if (isPlaying) Color(0x00BFFF) else Color(0xFF4000)
         thumbnail = if (isPlaying) playerOnImage.random() else playerOffImage.random()
 
         addField("Now Playing:", formatSong(currentSong, guild))
@@ -38,7 +38,7 @@ fun displayTrackEmbed(guild: Guild): MessageEmbed {
         return displayNoSongEmbed()
 
     return embed {
-        color = if (isPlaying) Color.CYAN else Color.RED
+        color = if (isPlaying) Color(0x00BFFF) else Color(0xFF4000)
         thumbnail = if (isPlaying) playerOnImage.random() else playerOffImage.random()
         val songSize = songList.size
 
@@ -59,7 +59,7 @@ fun displayTrackEmbed(guild: Guild): MessageEmbed {
 fun displayNoSongEmbed() = embed {
     addField("There are no more songs currently in the queue. ",
         "If you would like to add a song, use the `Play` command.")
-    color = Color.red
+    color = Color(0xFF4000)
 }
 
 private fun remaining(songSize: Int) = when {

@@ -21,7 +21,12 @@ fun playerCommands(config: Configuration) = commands {
             val channel = it.channel as TextChannel
             val member = it.author.toMember(guild)!!
 
-            it.respond("Estimated time until your song starts: ${guild.timeUntilLast().toTimeString()}")
+            val timeRemaining = guild.timeUntilLast()
+
+            if (timeRemaining > 0L){
+                it.respond("Estimated time until that song starts: **${timeRemaining.toTimeString()}**")
+            }
+
             guild.playSong(member.id, channel, url)
         }
     }
@@ -42,10 +47,9 @@ fun playerCommands(config: Configuration) = commands {
             if (!queuedSong && !isStaff)
                 return@execute it.respond("Sorry, only the person who queued the song or staff can skip.")
 
-            guild.nextSong()
-
             val previousTrackInfo = currentSong.track.info
             it.respond("Skipping ${previousTrackInfo.title} by ${previousTrackInfo.author}")
+            guild.nextSong()
         }
     }
 
