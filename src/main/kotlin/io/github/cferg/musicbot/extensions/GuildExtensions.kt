@@ -43,7 +43,7 @@ fun Guild.clearByMember(memberID: String): Boolean {
     }
 
     if (preCount != fetchUpcomingSongs().size){
-        nextSong(false)
+        nextSong()
         return true
     }
 
@@ -96,17 +96,12 @@ fun Guild.playSong(memberID: String, channel: TextChannel, songUrl: String, noIn
     })
 }
 
-fun Guild.nextSong(safe: Boolean = true) {
+fun Guild.nextSong() {
     val currentSong = fetchCurrentSong() ?: return
     val textChannel = getTextChannelById(currentSong.channelID) ?: return
-    val previousTrackInfo = currentSong.track.info ?: return
-
     val songList = fetchUpcomingSongs()
 
-    if(safe) {
-        textChannel.sendMessage("Skipping ${previousTrackInfo.title} by ${previousTrackInfo.author}").queue()
-        songList.removeFirst()
-    }
+    songList.removeFirst()
 
     if (songList.isNotEmpty()) {
         val currentVC = getMemberById(songList.first.memberID)?.voiceState?.channel ?: return nextSong()

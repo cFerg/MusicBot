@@ -43,6 +43,9 @@ fun playerCommands(config: Configuration) = commands {
                 return@execute it.respond("Sorry, only the person who queued the song or staff can skip.")
 
             guild.nextSong()
+
+            val previousTrackInfo = currentSong.track.info
+            it.respond("Skipping ${previousTrackInfo.title} by ${previousTrackInfo.author}")
         }
     }
 
