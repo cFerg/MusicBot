@@ -19,12 +19,8 @@ private val playerOffImage = listOf(
 )
 
 fun currentTrackEmbed(guild: Guild): MessageEmbed {
-    val currentSong = guild.fetchNextSong()
+    val currentSong = guild.fetchCurrentSong() ?: return displayNoSongEmbed()
     val isPlaying = guild.isTrackPlaying()
-
-    if (currentSong == null){
-        return displayNoSongEmbed()
-    }
 
     return embed {
         color = if (isPlaying) Color.CYAN else Color.RED

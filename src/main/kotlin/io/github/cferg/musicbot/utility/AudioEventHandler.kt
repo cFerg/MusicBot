@@ -12,8 +12,8 @@ class AudioEventHandler(private val guild: Guild) : AudioEventAdapter() {
     override fun onPlayerResume(player: AudioPlayer) = Unit
 
     override fun onTrackStart(player: AudioPlayer, track: AudioTrack) {
-        val firstSong = guild.fetchNextSong() ?: return
-        val textChannel = guild.getTextChannelById(firstSong.channelID)!!
+        val currentSong = guild.fetchCurrentSong() ?: return
+        val textChannel = guild.getTextChannelById(currentSong.channelID)!!
 
         textChannel.sendMessage(currentTrackEmbed(guild)).queue()
     }

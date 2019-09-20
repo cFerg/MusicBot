@@ -31,7 +31,7 @@ fun playerCommands(config: Configuration) = commands {
         requiresGuild = true
         execute {
             val guild = it.guild!!
-            val currentSong = guild.fetchNextSong()
+            val currentSong = guild.fetchCurrentSong()
                 ?: return@execute it.respond(displayNoSongEmbed())
 
             val member = it.author.toMember(guild)!!

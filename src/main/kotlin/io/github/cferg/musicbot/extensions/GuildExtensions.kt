@@ -48,7 +48,7 @@ fun Guild.clearByMember(memberID: String): Boolean {
         return true
     }
 
-    if (fetchNextSong() == null){
+    if (fetchCurrentSong() == null){
         startTimer()
     }
 
@@ -57,8 +57,8 @@ fun Guild.clearByMember(memberID: String): Boolean {
 
 fun Guild.clear() {
     val guildAudio = getGuildAudio()
-    val nextSong = fetchNextSong() ?: return
-    val textChannelID = nextSong.channelID
+    val currentSong = fetchCurrentSong() ?: return
+    val textChannelID = currentSong.channelID
     val songList = guildAudio.songQueue
     val textChannel = getTextChannelById(textChannelID) ?: return
 
@@ -132,7 +132,7 @@ fun Guild.setPlayerVolume(volume: Int) {
     player.volume = volume
 }
 
-fun Guild.fetchNextSong() = fetchUpcomingSongs().firstOrNull()
+fun Guild.fetchCurrentSong() = fetchUpcomingSongs().firstOrNull()
 
 fun Guild.fetchUpcomingSongs() = getGuildAudio().songQueue
 
@@ -171,7 +171,7 @@ fun Guild.disconnect() {
 
 fun Guild.timeUntilLast(): Long {
     val songList = fetchUpcomingSongs().takeIf { it.isNotEmpty() } ?: return 0L
-    val currentSongPosition = fetchNextSong()!!.track.position
+    val currentSongPosition = fetchCurrentSong()!!.track.position
 
     return songList.sumBy { it.track.duration.toInt() } - currentSongPosition
 }
@@ -180,7 +180,7 @@ fun Guild.startTimer() {
     var time = 30
     Timer().scheduleAtFixedRate(timerTask {
         if (time > 0){
-            if(fetchNextSong() != null){
+            if(fetchCurrentSong() != null){
                 this.cancel()
             }
             time--
