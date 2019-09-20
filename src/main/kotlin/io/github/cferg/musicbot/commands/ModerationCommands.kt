@@ -41,6 +41,7 @@ fun moderationCommands(config: Configuration, persistenceService: PersistenceSer
         execute {
             val guild = it.guild!!
             guild.clear()
+            guild.startTimer()
         }
     }
 

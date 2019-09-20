@@ -18,6 +18,22 @@ private val playerOffImage = listOf(
     "https://i.imgur.com/izVWqaM.gif"
 )
 
+fun currentTrackEmbed(guild: Guild): MessageEmbed {
+    val currentSong = guild.fetchNextSong()
+    val isPlaying = guild.isTrackPlaying()
+
+    if (currentSong == null){
+        return displayNoSongEmbed()
+    }
+
+    return embed {
+        color = if (isPlaying) Color.CYAN else Color.RED
+        thumbnail = if (isPlaying) playerOnImage.random() else playerOffImage.random()
+
+        addField("Now Playing:", formatSong(currentSong, guild))
+    }
+}
+
 fun displayTrackEmbed(guild: Guild): MessageEmbed {
     val songList = guild.fetchUpcomingSongs()
     val isPlaying = guild.isTrackPlaying()
@@ -26,24 +42,19 @@ fun displayTrackEmbed(guild: Guild): MessageEmbed {
         return displayNoSongEmbed()
 
     return embed {
-        if (songList.isNotEmpty()) {
-            color = if (isPlaying) Color.CYAN else Color.RED
-            thumbnail = if (isPlaying) playerOnImage.random() else playerOffImage.random()
+        color = if (isPlaying) Color.CYAN else Color.RED
+        thumbnail = if (isPlaying) playerOnImage.random() else playerOffImage.random()
+        val songSize = songList.size
 
-            val nextSize = songList.size - 1
-            val midSize = if (nextSize >= 5) nextSize / 2 else -1
-            val maxSize = if (nextSize >= 5) nextSize else 5
-
-            songList.forEachIndexed { index, song ->
-                when (index) {
-                    0 -> addField("Now Playing:", formatSong(song, guild))
-                    1 -> {
-                        addField("", "__**Next Songs:**__")
-                        addField("", formatSong(song, guild, "$index)"))
-                    }
-                    2, (maxSize - 1), maxSize -> addField("", formatSong(song, guild, "$index)"))
-                    midSize -> addField("", "**:**\n**:**\n**:**\n**:**")
+        songList.forEachIndexed { index, song ->
+            when (index) {
+                0 -> addField("Now Playing:", formatSong(song, guild))
+                1 -> {
+                    addField("", "__**Next Songs:**__")
+                    addField("", formatSong(song, guild, "$index)"))
                 }
+                2,3,4 -> addField("", formatSong(song, guild, "$index)"))
+                5 -> addField("", "${formatSong(song, guild, "$index)")}${remaining(songSize)}")
             }
         }
     }
@@ -53,6 +64,12 @@ fun displayNoSongEmbed() = embed {
     addField("There are no more songs currently in the queue. ",
         "If you would like to add a song, use the `Play` command.")
     color = Color.red
+}
+
+private fun remaining(songSize: Int) = when {
+    songSize - 6 > 1 -> "\n\n...and **${songSize - 6}** others."
+    songSize - 6 == 1 -> "\n\n...and **1** other."
+    else -> ""
 }
 
 private fun formatSong(song: Song, guild: Guild, header: String = "- **Song**:"): String {

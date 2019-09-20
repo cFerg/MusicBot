@@ -21,6 +21,7 @@ fun playerCommands(config: Configuration) = commands {
             val channel = it.channel as TextChannel
             val member = it.author.toMember(guild)!!
 
+            it.respond("Estimated time until your song starts: ${guild.timeUntilLast().toTimeString()}")
             guild.playSong(member.id, channel, url)
         }
     }

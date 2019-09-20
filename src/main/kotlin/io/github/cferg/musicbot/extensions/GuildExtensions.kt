@@ -48,6 +48,10 @@ fun Guild.clearByMember(memberID: String): Boolean {
         return true
     }
 
+    if (fetchNextSong() == null){
+        startTimer()
+    }
+
     return false
 }
 
@@ -163,6 +167,25 @@ fun Guild.disconnect() {
 
     audioManager.closeAudioConnection()
     guildAudio.player.stopTrack()
+}
+
+fun Guild.timeUntilLast(): Long {
+    val guildAudio = getGuildAudio()
+
+    val songList = guildAudio.songQueue
+
+    var remainingTime = 0L
+
+    if (songList.isNotEmpty()){
+        songList.forEachIndexed { index, song ->
+            remainingTime += when (index) {
+                0 -> song.track.duration - song.track.position
+                else -> song.track.duration
+            }
+        }
+    }
+
+    return remainingTime
 }
 
 fun Guild.startTimer() {
