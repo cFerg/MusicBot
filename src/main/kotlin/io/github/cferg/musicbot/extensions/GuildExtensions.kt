@@ -33,17 +33,16 @@ private fun Guild.toGuildAudio(): GuildAudio {
 }
 
 private fun Guild.getGuildAudio() = guildAudioMap.getOrPut(id) { toGuildAudio() }
+private fun Guild.getPlayer() = getGuildAudio().player
 
 fun Guild.clearByMember(memberID: String): Boolean {
-    val guildAudio = getGuildAudio()
+    val preCount = fetchUpcomingSongs().size
 
-    val preCount = guildAudio.songQueue.size
-
-    guildAudio.songQueue.removeIf {
+    fetchUpcomingSongs().removeIf {
         it.memberID == memberID
     }
 
-    if (preCount != guildAudio.songQueue.size){
+    if (preCount != fetchUpcomingSongs().size){
         nextSong(false)
         return true
     }
@@ -56,13 +55,11 @@ fun Guild.clearByMember(memberID: String): Boolean {
 }
 
 fun Guild.clear() {
-    val guildAudio = getGuildAudio()
     val currentSong = fetchCurrentSong() ?: return
-    val textChannelID = currentSong.channelID
-    val songList = guildAudio.songQueue
-    val textChannel = getTextChannelById(textChannelID) ?: return
+    val songList = fetchUpcomingSongs()
+    val textChannel = getTextChannelById(currentSong.channelID) ?: return
 
-    guildAudio.player.stopTrack()
+    stopTrack()
     songList.clear()
 
     textChannel.sendMessage(displayNoSongEmbed()).queue()
@@ -74,12 +71,12 @@ fun Guild.playSong(memberID: String, channel: TextChannel, songUrl: String, noIn
     guildAudio.playerManager.loadItem(songUrl, object : AudioLoadResultHandler {
         override fun trackLoaded(track: AudioTrack) {
             if (noInterrupt) {
-                guildAudio.songQueue.add(Song(track, memberID, channel.id))
+                fetchUpcomingSongs().add(Song(track, memberID, channel.id))
             } else {
-                guildAudio.songQueue.addFirst(Song(track, memberID, channel.id))
+                fetchUpcomingSongs().addFirst(Song(track, memberID, channel.id))
             }
 
-            if (guildAudio.player.startTrack(track, noInterrupt)) {
+            if (startTrack(track, noInterrupt)) {
                 val currentVC: VoiceChannel? = getMemberById(memberID)?.voiceState?.channel
                     ?: return channel.sendMessage("Please join a voice channel to use this command.").queue()
 
@@ -99,14 +96,12 @@ fun Guild.playSong(memberID: String, channel: TextChannel, songUrl: String, noIn
     })
 }
 
-fun Guild.nextSong(safe:Boolean = true) {
-    val guildAudio = getGuildAudio()
-    val previousTrack = guildAudio.songQueue.first ?: return
-    val textChannelID = previousTrack.channelID
-    val textChannel = getTextChannelById(textChannelID) ?: return
-    val previousTrackInfo = previousTrack.track.info ?: return
+fun Guild.nextSong(safe: Boolean = true) {
+    val currentSong = fetchCurrentSong() ?: return
+    val textChannel = getTextChannelById(currentSong.channelID) ?: return
+    val previousTrackInfo = currentSong.track.info ?: return
 
-    val songList = guildAudio.songQueue
+    val songList = fetchUpcomingSongs()
 
     if(safe) {
         textChannel.sendMessage("Skipping ${previousTrackInfo.title} by ${previousTrackInfo.author}").queue()
@@ -118,30 +113,30 @@ fun Guild.nextSong(safe:Boolean = true) {
 
         audioManager.openAudioConnection(currentVC)
 
-        guildAudio.player.playTrack(songList.first.track)
+        playTrack(songList.first.track)
     } else {
-        guildAudio.player.stopTrack()
+        stopTrack()
         textChannel.sendMessage(displayNoSongEmbed()).queue()
         startTimer()
     }
 }
 
 fun Guild.setPlayerVolume(volume: Int) {
-    val player = getGuildAudio().player
-
-    player.volume = volume
+    getPlayer().volume = volume
 }
 
 fun Guild.fetchCurrentSong() = fetchUpcomingSongs().firstOrNull()
-
 fun Guild.fetchUpcomingSongs() = getGuildAudio().songQueue
 
-fun Guild.isMuted() = getGuildAudio().player.volume == 0
+fun Guild.isMuted() = getPlayer().volume == 0
+fun Guild.isTrackPlaying() = getPlayer().isPaused.not()
 
-fun Guild.isTrackPlaying() = getGuildAudio().player.isPaused.not()
+private fun Guild.startTrack(audioTrack: AudioTrack, noInterrupt: Boolean) = getPlayer().startTrack(audioTrack, noInterrupt)
+private fun Guild.playTrack(audioTrack: AudioTrack) = getPlayer().playTrack(audioTrack)
+private fun Guild.stopTrack() = getPlayer().stopTrack()
 
 fun Guild.restartTrack(): Boolean {
-    val track = getGuildAudio().player.playingTrack ?: return false
+    val track = getPlayer().playingTrack ?: return false
 
     track.position = 0
     return true
@@ -149,7 +144,7 @@ fun Guild.restartTrack(): Boolean {
 
 fun Guild.mutePlayingTrack() {
     val guildAudio = getGuildAudio()
-    val player = guildAudio.player
+    val player = getPlayer()
 
     guildAudio.previousVolume = player.volume
     player.volume = 0
@@ -157,16 +152,14 @@ fun Guild.mutePlayingTrack() {
 
 fun Guild.unmutePlayingTrack() {
     val guildAudio = getGuildAudio()
-    val player = guildAudio.player
+    val player = getPlayer()
 
     player.volume = guildAudio.previousVolume
 }
 
 fun Guild.disconnect() {
-    val guildAudio = getGuildAudio()
-
     audioManager.closeAudioConnection()
-    guildAudio.player.stopTrack()
+    stopTrack()
 }
 
 fun Guild.timeUntilLast(): Long {
