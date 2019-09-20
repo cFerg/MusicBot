@@ -170,22 +170,10 @@ fun Guild.disconnect() {
 }
 
 fun Guild.timeUntilLast(): Long {
-    val guildAudio = getGuildAudio()
+    val songList = fetchUpcomingSongs().takeIf { it.isNotEmpty() } ?: return 0L
+    val currentSongPosition = fetchNextSong()!!.track.position
 
-    val songList = guildAudio.songQueue
-
-    var remainingTime = 0L
-
-    if (songList.isNotEmpty()){
-        songList.forEachIndexed { index, song ->
-            remainingTime += when (index) {
-                0 -> song.track.duration - song.track.position
-                else -> song.track.duration
-            }
-        }
-    }
-
-    return remainingTime
+    return songList.sumBy { it.track.duration.toInt() } - currentSongPosition
 }
 
 fun Guild.startTimer() {
