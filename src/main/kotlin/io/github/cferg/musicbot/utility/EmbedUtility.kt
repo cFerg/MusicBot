@@ -5,26 +5,22 @@ import me.aberrantfox.kjdautils.api.dsl.embed
 import net.dv8tion.jda.api.entities.*
 import java.awt.Color
 
-//TODO move these to a config
-private val playerOnImage = listOf(
+private val customGreen = Color(0x14B878)
+private val customBlue = Color(0x00BFFF)
+private val customRed = Color(0xFF4000)
+
+private val defaultImage = listOf(
     "https://i.imgur.com/DzVDu0c.gif",
     "https://i.imgur.com/0W8ZoUs.gif",
     "https://i.imgur.com/EZm2asN.gif"
 )
 
-private val playerOffImage = listOf(
-    "https://i.imgur.com/S7A1t6W.gif",
-    "https://i.imgur.com/MuPScTC.gif",
-    "https://i.imgur.com/izVWqaM.gif"
-)
-
 fun currentTrackEmbed(guild: Guild): MessageEmbed {
     val currentSong = guild.fetchCurrentSong() ?: return displayNoSongEmbed()
-    val isPlaying = guild.isTrackPlaying()
 
     return embed {
-        color = if (isPlaying) Color(0x00BFFF) else Color(0xFF4000)
-        thumbnail = if (isPlaying) playerOnImage.random() else playerOffImage.random()
+        color = customBlue
+        thumbnail = guild.getMemberById(currentSong.memberID)?.user?.avatarUrl ?: defaultImage.random()
 
         addField("Now Playing:", formatSong(currentSong, guild))
     }
@@ -32,14 +28,13 @@ fun currentTrackEmbed(guild: Guild): MessageEmbed {
 
 fun displayTrackEmbed(guild: Guild): MessageEmbed {
     val songList = guild.fetchUpcomingSongs()
-    val isPlaying = guild.isTrackPlaying()
 
     if (songList.isEmpty())
         return displayNoSongEmbed()
 
     return embed {
-        color = if (isPlaying) Color(0x00BFFF) else Color(0xFF4000)
-        thumbnail = if (isPlaying) playerOnImage.random() else playerOffImage.random()
+        color = customBlue
+        thumbnail = guild.getMemberById(guild.fetchCurrentSong()!!.memberID)?.user?.avatarUrl ?: defaultImage.random()
         val songSize = songList.size
 
         songList.forEachIndexed { index, song ->
@@ -50,21 +45,29 @@ fun displayTrackEmbed(guild: Guild): MessageEmbed {
                     addField("", formatSong(song, guild, "$index)"))
                 }
                 2,3,4 -> addField("", formatSong(song, guild, "$index)"))
-                5 -> addField("", "${formatSong(song, guild, "$index)")}${remaining(songSize)}")
+                5 -> {
+                    addField("", formatSong(song, guild, "$index)"))
+                    footer { text = remaining(songSize)}
+                }
             }
         }
     }
 }
 
+fun addSongEmbed(header: String, description: String, time: Long) = embed {
+    addField(header, "ETA until $description starts: **${time.toTimeString()}**")
+    color = customGreen
+}
+
 fun displayNoSongEmbed() = embed {
     addField("There are no more songs currently in the queue. ",
         "If you would like to add a song, use the `Play` command.")
-    color = Color(0xFF4000)
+    color = customRed
 }
 
 private fun remaining(songSize: Int) = when {
-    songSize - 6 > 1 -> "\n\n...and **${songSize - 6}** others."
-    songSize - 6 == 1 -> "\n\n...and **1** other."
+    songSize - 6 > 1 -> "and **${songSize - 6}** others."
+    songSize - 6 == 1 -> "and **1** other."
     else -> ""
 }
 

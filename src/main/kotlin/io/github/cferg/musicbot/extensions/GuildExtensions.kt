@@ -5,6 +5,7 @@ import com.sedmelluq.discord.lavaplayer.source.AudioSourceManagers
 import com.sedmelluq.discord.lavaplayer.tools.FriendlyException
 import com.sedmelluq.discord.lavaplayer.track.*
 import io.github.cferg.musicbot.utility.*
+import me.aberrantfox.kjdautils.extensions.jda.fullName
 import net.dv8tion.jda.api.entities.*
 import java.util.*
 import kotlin.concurrent.timerTask
@@ -73,6 +74,10 @@ fun Guild.clear() {
 
 fun Guild.playSong(memberID: String, channel: TextChannel, songUrl: String, noInterrupt: Boolean = true) {
     val guildAudio = getGuildAudio()
+    val timeRemaining = timeUntilLast()
+    val preQueueCount = fetchUpcomingSongs().size
+
+    var isPlaylist = false
 
     guildAudio.playerManager.loadItem(songUrl, object : AudioLoadResultHandler {
         override fun trackLoaded(track: AudioTrack) {
@@ -87,18 +92,35 @@ fun Guild.playSong(memberID: String, channel: TextChannel, songUrl: String, noIn
                     ?: return channel.sendMessage("Please join a voice channel to use this command.").queue()
 
                 audioManager.openAudioConnection(currentVC)
+            }else{
+                if (!isPlaylist){
+                    sendEmbed("[${track.info.title}](${track.info.uri})", "song")
+                }
             }
         }
 
         override fun playlistLoaded(playlist: AudioPlaylist) {
+            isPlaylist = true
+
             playlist.tracks.forEachIndexed { _, track ->
                 trackLoaded(track)
             }
+
+            sendEmbed("[${playlist.name}]($songUrl)", "playlist")
         }
 
         override fun noMatches() = channel.sendMessage("No matching song found.").queue()
 
         override fun loadFailed(throwable: FriendlyException) = channel.sendMessage("Failed to load song.").queue()
+
+        fun sendEmbed(description: String, header: String){
+            channel.sendMessage(addSongEmbed(
+                if (preQueueCount == 1){
+                    "${getMemberById(memberID)!!.fullName()} queued a $header to play next."
+                }else{
+                    "${getMemberById(memberID)!!.fullName()} queued a $header to start $preQueueCount songs from now."
+                }, description, timeRemaining)).queue()
+        }
     })
 }
 
@@ -126,6 +148,7 @@ fun Guild.setPlayerVolume(volume: Int) {
     getPlayer().volume = volume
 }
 
+fun Guild.fetchLastSong() = fetchUpcomingSongs().lastOrNull()
 fun Guild.fetchCurrentSong() = fetchUpcomingSongs().firstOrNull()
 fun Guild.fetchUpcomingSongs() = getGuildAudio().songQueue
 

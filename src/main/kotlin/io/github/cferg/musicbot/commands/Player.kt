@@ -5,6 +5,7 @@ import io.github.cferg.musicbot.extensions.*
 import io.github.cferg.musicbot.utility.displayNoSongEmbed
 import io.github.cferg.musicbot.utility.displayTrackEmbed
 import me.aberrantfox.kjdautils.api.dsl.*
+import me.aberrantfox.kjdautils.extensions.jda.deleteIfExists
 import me.aberrantfox.kjdautils.extensions.jda.toMember
 import me.aberrantfox.kjdautils.internal.arguments.UrlArg
 import net.dv8tion.jda.api.entities.TextChannel
@@ -21,13 +22,11 @@ fun playerCommands(config: Configuration) = commands {
             val channel = it.channel as TextChannel
             val member = it.author.toMember(guild)!!
 
-            val timeRemaining = guild.timeUntilLast()
-
-            if (timeRemaining > 0L){
-                it.respond("Estimated time until that song starts: **${timeRemaining.toTimeString()}**")
-            }
-
             guild.playSong(member.id, channel, url)
+
+            if (!it.stealthInvocation){
+                it.message.deleteIfExists()
+            }
         }
     }
 

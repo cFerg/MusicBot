@@ -34,11 +34,10 @@
 | Skip     | <none>    | Skips the current song.                                                     |
 
 ## Utility
-| Commands     | Arguments | Description                                |
-| ------------ | --------- | ------------------------------------------ |
-| BotInfo      | <none>    | Displays the bot information.              |
-| ListCommands | <none>    | Lists all available commands.              |
-| Ping         | <none>    | Displays network ping of the bot!          |
-| Source       | <none>    | Display the (source code) repository link. |
-| help         | (Word)    | Display a help menu                        |
+| Commands | Arguments | Description                                |
+| -------- | --------- | ------------------------------------------ |
+| BotInfo  | <none>    | Displays the bot information.              |
+| Help     | (Command) | Display a help menu.                       |
+| Ping     | <none>    | Displays network ping of the bot!          |
+| Source   | <none>    | Display the (source code) repository link. |
 

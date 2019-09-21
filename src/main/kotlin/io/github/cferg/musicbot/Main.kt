@@ -9,8 +9,6 @@ fun main(args: Array<String>) {
     startBot(token) {
         configure {
             globalPath = "io.github.cferg.musicbot"
-
-            container.commands.getValue("help").category = "Utility"
         }
     }
 }
