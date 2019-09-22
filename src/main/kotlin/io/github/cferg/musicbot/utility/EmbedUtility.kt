@@ -34,7 +34,7 @@ fun displayTrackEmbed(guild: Guild): MessageEmbed {
 
     return embed {
         color = customBlue
-        thumbnail = guild.getMemberById(guild.fetchCurrentSong()!!.memberID)?.user?.avatarUrl ?: defaultImage.random()
+        thumbnail = guild.getMemberById(guild.fetchCurrentSong() !!.memberID)?.user?.avatarUrl ?: defaultImage.random()
         val songSize = songList.size
 
         songList.forEachIndexed { index, song ->
@@ -55,7 +55,7 @@ fun displayTrackEmbed(guild: Guild): MessageEmbed {
 }
 
 fun addSongEmbed(header: String, description: String, time: Long) = embed {
-    addField(header, "ETA until $description starts: **${time.toTimeString()}**")
+    addField(header, "$description will start in ~ **${time.toTimeString()}**")
     color = customGreen
 }
 
@@ -66,8 +66,8 @@ fun displayNoSongEmbed() = embed {
 }
 
 private fun remaining(songSize: Int) = when {
-    songSize - 6 > 1 -> "and **${songSize - 6}** others."
-    songSize - 6 == 1 -> "and **1** other."
+    songSize > 7 -> "and ${songSize - 6} others."
+    songSize == 7 -> "and 1 other."
     else -> ""
 }
 

@@ -20,7 +20,7 @@
         <!-- Version Numbers -->
         <kotlin.version>1.3.50</kotlin.version>
         <kutils.version>0.11.0</kutils.version>
-        <lava.version>1.3.20</lava.version>
+        <lava.version>1.3.22</lava.version>
 
         <!-- Main Class -->
         <main.class>io.github.cferg.musicbot.MainKt</main.class>

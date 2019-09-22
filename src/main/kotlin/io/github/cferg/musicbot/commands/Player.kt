@@ -7,6 +7,8 @@ import io.github.cferg.musicbot.utility.displayTrackEmbed
 import me.aberrantfox.kjdautils.api.dsl.*
 import me.aberrantfox.kjdautils.extensions.jda.deleteIfExists
 import me.aberrantfox.kjdautils.extensions.jda.toMember
+import me.aberrantfox.kjdautils.internal.arguments.ChoiceArg
+import me.aberrantfox.kjdautils.internal.arguments.SentenceArg
 import me.aberrantfox.kjdautils.internal.arguments.UrlArg
 import net.dv8tion.jda.api.entities.TextChannel
 
@@ -23,6 +25,38 @@ fun playerCommands(config: Configuration) = commands {
             val member = it.author.toMember(guild)!!
 
             guild.playSong(member.id, channel, url)
+
+            if (!it.stealthInvocation){
+                it.message.deleteIfExists()
+            }
+        }
+    }
+
+    command("Search") {
+        description = "Search a song based on keywords."
+        requiresGuild = true
+        expect(ChoiceArg("YouTube | YT | SoundCloud | SC", "SC", "YT", "SoundCloud", "YouTube"), SentenceArg)
+        execute {
+            val engine = it.args.component1() as String
+            val search = it.args.component2() as String
+
+            val prefix = when (engine.toLowerCase()){
+                "youtube", "yt" -> {
+                    "ytsearch:"
+                }
+                "soundcloud", "sc" -> {
+                    "scsearch:"
+                }
+                else -> {
+                    return@execute
+                }
+            }
+
+            val guild = it.guild!!
+            val channel = it.channel as TextChannel
+            val member = it.author.toMember(guild)!!
+
+            guild.playSong(member.id, channel, "$prefix$search", false)
 
             if (!it.stealthInvocation){
                 it.message.deleteIfExists()

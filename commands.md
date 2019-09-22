@@ -27,11 +27,12 @@
 | Volume   | Integer (0-100) | Adjust volume from range 0-100                                |
 
 ## Player
-| Commands | Arguments | Description                                                                 |
-| -------- | --------- | --------------------------------------------------------------------------- |
-| List     | <none>    | Lists the current songs.                                                    |
-| Play     | URL       | Play the song listed - If a song is already playing, it's added to a queue. |
-| Skip     | <none>    | Skips the current song.                                                     |
+| Commands | Arguments                               | Description                                                                 |
+| -------- | --------------------------------------- | --------------------------------------------------------------------------- |
+| List     | <none>                                  | Lists the current songs.                                                    |
+| Play     | URL                                     | Play the song listed - If a song is already playing, it's added to a queue. |
+| Search   | YouTube \| YT \| SoundCloud \| SC, Text | Search a song based on keywords.                                            |
+| Skip     | <none>                                  | Skips the current song.                                                     |
 
 ## Utility
 | Commands | Arguments | Description                                |

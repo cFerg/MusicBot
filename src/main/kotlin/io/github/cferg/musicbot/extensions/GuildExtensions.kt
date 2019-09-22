@@ -54,7 +54,7 @@ fun Guild.clearByMember(memberID: String): Boolean {
     }
 
     if (fetchCurrentSong() == null){
-        startTimer()
+        disconnect()
     }
 
     return false
@@ -67,12 +67,12 @@ fun Guild.clear() {
 
     stopTrack()
     songList.clear()
-    startTimer()
+    disconnect()
 
     textChannel.sendMessage(displayNoSongEmbed()).queue()
 }
 
-fun Guild.playSong(memberID: String, channel: TextChannel, songUrl: String, noInterrupt: Boolean = true) {
+fun Guild.playSong(memberID: String, channel: TextChannel, songUrl: String, multiSearch: Boolean = true, noInterrupt: Boolean = true) {
     val guildAudio = getGuildAudio()
     val timeRemaining = timeUntilLast()
     val preQueueCount = fetchUpcomingSongs().size
@@ -100,13 +100,17 @@ fun Guild.playSong(memberID: String, channel: TextChannel, songUrl: String, noIn
         }
 
         override fun playlistLoaded(playlist: AudioPlaylist) {
-            isPlaylist = true
+            if (multiSearch){
+                isPlaylist = true
 
-            playlist.tracks.forEachIndexed { _, track ->
-                trackLoaded(track)
+                playlist.tracks.forEachIndexed { _, track ->
+                    trackLoaded(track)
+                }
+
+                sendEmbed("[${playlist.name}]($songUrl)", "playlist")
+            }else{
+                trackLoaded(playlist.tracks.first())
             }
-
-            sendEmbed("[${playlist.name}]($songUrl)", "playlist")
         }
 
         override fun noMatches() = channel.sendMessage("No matching song found.").queue()
@@ -132,7 +136,8 @@ fun Guild.nextSong() {
     songList.removeFirst()
 
     if (songList.isNotEmpty()) {
-        val currentVC = getMemberById(songList.first.memberID)?.voiceState?.channel ?: return nextSong()
+        val memberID = songList.first.memberID
+        val currentVC:VoiceChannel = getMemberById(memberID)?.voiceState?.channel ?: return cleanup(memberID)
 
         audioManager.openAudioConnection(currentVC)
 
@@ -142,6 +147,10 @@ fun Guild.nextSong() {
         textChannel.sendMessage(displayNoSongEmbed()).queue()
         startTimer()
     }
+}
+
+private fun Guild.cleanup(memberID: String){
+    clearByMember(memberID)
 }
 
 fun Guild.setPlayerVolume(volume: Int) {
