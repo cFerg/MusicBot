@@ -34,19 +34,32 @@ fun managementCommands(config: Configuration, persistenceService: PersistenceSer
         }
     }
 
-    //TODO add an ability to remove the role | everyone doesn't work
     command("PlaylistRole") {
-        description = "Sets a role for the ability to add playlist"
+        description = "Sets a role on who can add playlists"
         requiresGuild = true
-        expect(RoleArg("Role"))
+        expect(RoleArg("Role name"))
         execute {
-            val role = it.args.component1() as Role
             val guild = it.guild!!
             val guildConfig = config.guildConfigurations[guild.id]!!
 
+            val role = it.args.component1() as Role
             guildConfig.playlistRole = role.id
-            persistenceService.save(config)
             it.respond("Assigned the Playlist Role to ${role.name}")
+
+            persistenceService.save(config)
+        }
+    }
+
+    command("PlaylistRoleClear") {
+        description = "Removes a role, letting everyone add playlists."
+        requiresGuild = true
+        execute {
+            val guild = it.guild!!
+            val guildConfig = config.guildConfigurations[guild.id]!!
+
+            guildConfig.playlistRole = ""
+            it.respond("Assigned the Playlist Role to everyone.")
+            persistenceService.save(config)
         }
     }
 

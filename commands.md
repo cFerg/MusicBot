@@ -6,17 +6,18 @@
 | (Argument) | This argument is optional. |
 
 ## Management
-| Commands      | Arguments         | Description                                                                       |
-| ------------- | ----------------- | --------------------------------------------------------------------------------- |
-| Disconnect    | <none>            | Remove the bot from its current voice channel.                                    |
-| Logging       | TextChannel       | Sets a Logging Channel to send bot command invokes to.                            |
-| PlaylistLimit | Song Limit        | Sets a maximum playlist song limit \| Set to 0 for no limits.                     |
-| PlaylistRole  | Role              | Sets a role for the ability to add playlist                                       |
-| Prefix        | Character         | Sets the prefix for the bot.                                                      |
-| Setup         | Role, TextChannel | Setups the configuration for a guild.                                             |
-| SongDuration  | Time              | Sets a maximum song duration limit \| Set to 0 for no limits.                     |
-| SongLimit     | Song Limit        | Sets how many songs a person can queue at a given time \| Set to 0 for no limits. |
-| StaffRole     | Role              | Sets a Staff role for moderation commands                                         |
+| Commands          | Arguments         | Description                                                                       |
+| ----------------- | ----------------- | --------------------------------------------------------------------------------- |
+| Disconnect        | <none>            | Remove the bot from its current voice channel.                                    |
+| Logging           | TextChannel       | Sets a Logging Channel to send bot command invokes to.                            |
+| PlaylistLimit     | Song Limit        | Sets a maximum playlist song limit \| Set to 0 for no limits.                     |
+| PlaylistRole      | Role name         | Sets a role on who can add playlists                                              |
+| PlaylistRoleClear | <none>            | Removes a role, letting everyone add playlists.                                   |
+| Prefix            | Character         | Sets the prefix for the bot.                                                      |
+| Setup             | Role, TextChannel | Setups the configuration for a guild.                                             |
+| SongDuration      | Time              | Sets a maximum song duration limit \| Set to 0 for no limits.                     |
+| SongLimit         | Song Limit        | Sets how many songs a person can queue at a given time \| Set to 0 for no limits. |
+| StaffRole         | Role              | Sets a Staff role for moderation commands                                         |
 
 ## Moderation
 | Commands | Arguments       | Description                                                   |
