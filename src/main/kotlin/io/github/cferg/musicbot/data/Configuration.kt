@@ -8,4 +8,8 @@ data class Configuration(var prefix: String = "$",
 
 data class GuildInfo(var staffRole: String = "",
                      var loggingChannelID: String = "",
+                     var playlistRole: String = "",
+                     var playlistQueueLimit: Int = 0,
+                     var songMaxDuration: Long = 0,
+                     var songQueueLimit: Int = 0,
                      var ignoreList: MutableList<String> = mutableListOf())

@@ -2,6 +2,7 @@ package io.github.cferg.musicbot.commands
 
 import io.github.cferg.musicbot.data.*
 import io.github.cferg.musicbot.extensions.disconnect
+import io.github.cferg.musicbot.extensions.toTimeString
 import me.aberrantfox.kjdautils.api.dsl.*
 import me.aberrantfox.kjdautils.internal.arguments.*
 import me.aberrantfox.kjdautils.internal.di.PersistenceService
@@ -18,33 +19,94 @@ fun managementCommands(config: Configuration, persistenceService: PersistenceSer
         }
     }
 
-    command("SetStaff") {
+    command("StaffRole") {
         description = "Sets a Staff role for moderation commands"
         requiresGuild = true
         expect(RoleArg("Role"))
         execute {
             val role = it.args.component1() as Role
             val guild = it.guild!!
-            val guildConfig = config.guildConfigurations[guild.id]
+            val guildConfig = config.guildConfigurations[guild.id]!!
 
-            guildConfig!!.staffRole = role.id
+            guildConfig.staffRole = role.id
             persistenceService.save(config)
             it.respond("Assigned the Staff Role to ${role.name}")
         }
     }
 
-    command("SetLogging") {
+    //TODO add an ability to remove the role | everyone doesn't work
+    command("PlaylistRole") {
+        description = "Sets a role for the ability to add playlist"
+        requiresGuild = true
+        expect(RoleArg("Role"))
+        execute {
+            val role = it.args.component1() as Role
+            val guild = it.guild!!
+            val guildConfig = config.guildConfigurations[guild.id]!!
+
+            guildConfig.playlistRole = role.id
+            persistenceService.save(config)
+            it.respond("Assigned the Playlist Role to ${role.name}")
+        }
+    }
+
+    command("Logging") {
         description = "Sets a Logging Channel to send bot command invokes to."
         requiresGuild = true
         expect(TextChannelArg)
         execute {
             val channel = it.args.component1() as TextChannel
             val guild = it.guild!!
-            val guildConfig = config.guildConfigurations[guild.id]
+            val guildConfig = config.guildConfigurations[guild.id]!!
 
-            guildConfig!!.loggingChannelID = channel.id
+            guildConfig.loggingChannelID = channel.id
             persistenceService.save(config)
             it.respond("Assigned the Logging Channel to ${channel.name}")
+        }
+    }
+
+    command("PlaylistLimit") {
+        description = "Sets a maximum playlist song limit | Set to 0 for no limits."
+        requiresGuild = true
+        expect(IntegerArg("Song Limit"))
+        execute {
+            val limit = it.args.component1() as Int
+            val guild = it.guild!!
+            val guildConfig = config.guildConfigurations[guild.id]!!
+
+            guildConfig.playlistQueueLimit = limit
+            persistenceService.save(config)
+            it.respond("Set the playlist song queue limit to $limit")
+        }
+    }
+
+    command("SongDuration") {
+        description = "Sets a maximum song duration limit | Set to 0 for no limits."
+        requiresGuild = true
+        expect(TimeStringArg("Time"))
+        execute {
+            val time = it.args.component1() as Double
+            val guild = it.guild!!
+            val guildConfig = config.guildConfigurations[guild.id]!!
+            guildConfig.songMaxDuration = time.toLong() * 1000
+            val newTime = guildConfig.songMaxDuration
+            persistenceService.save(config)
+            it.respond("Set the song max time limit to ${newTime.toTimeString()}")
+        }
+    }
+
+    command("SongLimit") {
+        description = "Sets how many songs a person can queue at a given time | Set to 0 for no limits."
+        requiresGuild = true
+        expect(IntegerArg("Song Limit"))
+        execute {
+            val limit = it.args.component1() as Int
+            val guild = it.guild!!
+            val guildConfig = config.guildConfigurations[guild.id]!!
+
+            guildConfig.songQueueLimit = limit
+            persistenceService.save(config)
+            it.respond("Set the song queue limit to $limit")
         }
     }
 
@@ -68,8 +130,8 @@ fun managementCommands(config: Configuration, persistenceService: PersistenceSer
                 persistenceService.save(config)
             }
 
-            it.respond("Assigned the Logging Channel to ${channel.name}")
             it.respond("Assigned the Staff Role to ${role.name}")
+            it.respond("Assigned the Logging Channel to ${channel.name}")
         }
     }
 

@@ -20,7 +20,7 @@ fun moderationCommands(config: Configuration, persistenceService: PersistenceSer
             val channel = it.channel as TextChannel
             val member = it.author.toMember(guild)!!
 
-            guild.playSong(member.id, channel, url)
+            guild.playSong(config, member, channel, url, multiSearch = true, noInterrupt = false)
         }
     }
 

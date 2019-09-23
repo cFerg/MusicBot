@@ -4,9 +4,12 @@ import com.sedmelluq.discord.lavaplayer.player.*
 import com.sedmelluq.discord.lavaplayer.source.AudioSourceManagers
 import com.sedmelluq.discord.lavaplayer.tools.FriendlyException
 import com.sedmelluq.discord.lavaplayer.track.*
+import io.github.cferg.musicbot.data.Configuration
 import io.github.cferg.musicbot.utility.*
+import me.aberrantfox.kjdautils.api.dsl.embed
 import me.aberrantfox.kjdautils.extensions.jda.fullName
 import net.dv8tion.jda.api.entities.*
+import java.awt.Color
 import java.util.*
 import kotlin.concurrent.timerTask
 
@@ -35,6 +38,7 @@ private fun Guild.toGuildAudio(): GuildAudio {
 
 private fun Guild.getGuildAudio() = guildAudioMap.getOrPut(id) { toGuildAudio() }
 private fun Guild.getPlayer() = getGuildAudio().player
+private fun Guild.getConfig(config: Configuration) = config.guildConfigurations[this.id]!!
 
 fun Guild.clearByMember(memberID: String): Boolean {
     val preCount = fetchUpcomingSongs().size
@@ -72,23 +76,29 @@ fun Guild.clear() {
     textChannel.sendMessage(displayNoSongEmbed()).queue()
 }
 
-fun Guild.playSong(memberID: String, channel: TextChannel, songUrl: String, multiSearch: Boolean = true, noInterrupt: Boolean = true) {
+fun Guild.playSong(config: Configuration, member: Member, channel: TextChannel, songUrl: String, multiSearch: Boolean = true, noInterrupt: Boolean = true) {
     val guildAudio = getGuildAudio()
     val timeRemaining = timeUntilLast()
     val preQueueCount = fetchUpcomingSongs().size
-
     var isPlaylist = false
 
     guildAudio.playerManager.loadItem(songUrl, object : AudioLoadResultHandler {
         override fun trackLoaded(track: AudioTrack) {
+            if (!assertSongLimit(member, config))
+                return errorEmbed(channel,"You have reached the song queue limit of **${songQueueLimit(config)}**"
+                , "Attempted song: [${track.info.title}](${track.info.uri})")
+            if (!assertSongDuration(track, config))
+                return errorEmbed(channel,"That song's duration is **${track.duration.toTimeString()}**, which exceeds the limit of **${songMaxDuration(config).toTimeString()}**"
+                , "Attempted song: [${track.info.title}](${track.info.uri})")
+
             if (noInterrupt) {
-                fetchUpcomingSongs().add(Song(track, memberID, channel.id))
+                fetchUpcomingSongs().add(Song(track, member.id, channel.id))
             } else {
-                fetchUpcomingSongs().addFirst(Song(track, memberID, channel.id))
+                fetchUpcomingSongs().addFirst(Song(track, member.id, channel.id))
             }
 
             if (startTrack(track, noInterrupt)) {
-                val currentVC: VoiceChannel? = getMemberById(memberID)?.voiceState?.channel
+                val currentVC: VoiceChannel? = member.voiceState?.channel
                     ?: return channel.sendMessage("Please join a voice channel to use this command.").queue()
 
                 audioManager.openAudioConnection(currentVC)
@@ -101,29 +111,59 @@ fun Guild.playSong(memberID: String, channel: TextChannel, songUrl: String, mult
 
         override fun playlistLoaded(playlist: AudioPlaylist) {
             if (multiSearch){
+                if (!assertSongLimit(member, config))
+                    return errorEmbed(channel,"You have reached the song queue limit of **${songQueueLimit(config)}**"
+                    , "Attempted playlist: [${playlist.name}]($songUrl)")
+
+                if (!assertPlaylistRole(member, config))
+                    return errorEmbed(channel,"You don't have the required role to add a playlist."
+                    , "Attempted playlist: [${playlist.name}]($songUrl)")
+
+                val trackSize = playlist.tracks.size
+                if (!assertPlaylistLimit(playlist, config))
+                    return errorEmbed(channel,"This playlist has **$trackSize** songs, which exceeds the limit of **${playlistQueueLimit(config)}**"
+                    , "Attempted playlist: [${playlist.name}]($songUrl)")
+
+                if (!assertPlaylistCount(member, playlist, config)){
+                    val remaining = remainingSongLimit(member, config)
+
+                    return errorEmbed(channel,
+                        if (remaining <= 0){
+                            "Sorry, you have currently reached your song limit. Max is **${songQueueLimit(config)}**"
+                        }else{
+                            "You can currently add **$remaining** songs - This playlist has **$trackSize**"
+                        }, "Attempted playlist: [${playlist.name}]($songUrl)")
+                }
+
                 isPlaylist = true
 
                 playlist.tracks.forEachIndexed { _, track ->
                     trackLoaded(track)
                 }
 
-                sendEmbed("[${playlist.name}]($songUrl)", "playlist")
+                if (preQueueCount > 0) {
+                    sendEmbed("[${playlist.name}]($songUrl)", "playlist")
+                }
             }else{
                 trackLoaded(playlist.tracks.first())
             }
         }
 
-        override fun noMatches() = channel.sendMessage("No matching song found.").queue()
+        override fun noMatches() = errorEmbed(channel, "Song Error" , "No matching song found.")
 
-        override fun loadFailed(throwable: FriendlyException) = channel.sendMessage("Failed to load song.").queue()
+        override fun loadFailed(throwable: FriendlyException) = errorEmbed(channel, "Song Error", "Failed to load song.")
 
         fun sendEmbed(description: String, header: String){
             channel.sendMessage(addSongEmbed(
                 if (preQueueCount == 1){
-                    "${getMemberById(memberID)!!.fullName()} queued a $header to play next."
+                    "${member.fullName()} queued a $header to play next."
                 }else{
-                    "${getMemberById(memberID)!!.fullName()} queued a $header to start $preQueueCount songs from now."
+                    "${member.fullName()} queued a $header to start $preQueueCount songs from now."
                 }, description, timeRemaining)).queue()
+        }
+
+        fun errorEmbed(channel: TextChannel, header: String, body: String) {
+            channel.sendMessage(embed { addField(header, body); color = Color(0xFF4000)}).queue()
         }
     })
 }
@@ -149,6 +189,71 @@ fun Guild.nextSong() {
     }
 }
 
+private fun Guild.songMaxDuration(config: Configuration) = getConfig(config).songMaxDuration
+private fun Guild.songQueueLimit(config: Configuration) = getConfig(config).songQueueLimit
+private fun Guild.playlistQueueLimit(config: Configuration) = getConfig(config).playlistQueueLimit
+private fun Guild.remainingSongLimit(member: Member, config: Configuration): Int {
+    val songLimit = songQueueLimit(config)
+
+    if (songLimit <= 0){
+        return -1
+    }
+
+    val currentLimit = fetchUpcomingSongs().count{ song -> song.memberID == member.id }
+
+    return (songLimit - currentLimit)
+}
+private fun Guild.assertPlaylistCount(member: Member, playlist: AudioPlaylist, config: Configuration): Boolean{
+    val songLimit = songQueueLimit(config)
+
+    if (songLimit <= 0){
+        return true
+    }
+
+    val currentLimit = fetchUpcomingSongs().count{ song -> song.memberID == member.id }
+    val playlistCount = playlist.tracks.size
+
+    return (playlistCount < songLimit - currentLimit)
+}
+private fun Guild.assertSongDuration(track: AudioTrack, config: Configuration): Boolean{
+    val durationLimit = songMaxDuration(config)
+
+    if (durationLimit <= 0L){
+        return true
+    }
+
+    return (track.duration <= durationLimit)
+}
+private fun Guild.assertSongLimit(member: Member, config: Configuration): Boolean{
+    val songLimit = songQueueLimit(config)
+
+    if (songLimit <= 0){
+        return true
+    }
+
+    val currentLimit = fetchUpcomingSongs().count{ song -> song.memberID == member.id }
+
+    return (currentLimit < songLimit)
+}
+private fun Guild.assertPlaylistLimit(playlist: AudioPlaylist, config: Configuration): Boolean{
+    val playlistLimit = playlistQueueLimit(config)
+
+    if (playlistLimit <= 0){
+        return true
+    }
+
+    return (playlist.tracks.size <= playlistLimit)
+}
+private fun Guild.assertPlaylistRole(member: Member, config: Configuration): Boolean{
+    val playlistRole = getConfig(config).playlistRole
+
+    if (playlistRole == ""){
+        return true
+    }
+
+    return member.roles.any { plr -> plr.id == playlistRole}
+}
+
 private fun Guild.cleanup(memberID: String){
     clearByMember(memberID)
 }
@@ -163,6 +268,19 @@ fun Guild.fetchUpcomingSongs() = getGuildAudio().songQueue
 
 fun Guild.isMuted() = getPlayer().volume == 0
 fun Guild.isTrackPlaying() = getPlayer().isPaused.not()
+fun Guild.mutePlayingTrack() {
+    val guildAudio = getGuildAudio()
+    val player = getPlayer()
+
+    guildAudio.previousVolume = player.volume
+    player.volume = 0
+}
+fun Guild.unmutePlayingTrack() {
+    val guildAudio = getGuildAudio()
+    val player = getPlayer()
+
+    player.volume = guildAudio.previousVolume
+}
 
 private fun Guild.startTrack(audioTrack: AudioTrack, noInterrupt: Boolean) = getPlayer().startTrack(audioTrack, noInterrupt)
 private fun Guild.playTrack(audioTrack: AudioTrack) = getPlayer().playTrack(audioTrack)
@@ -173,21 +291,6 @@ fun Guild.restartTrack(): Boolean {
 
     track.position = 0
     return true
-}
-
-fun Guild.mutePlayingTrack() {
-    val guildAudio = getGuildAudio()
-    val player = getPlayer()
-
-    guildAudio.previousVolume = player.volume
-    player.volume = 0
-}
-
-fun Guild.unmutePlayingTrack() {
-    val guildAudio = getGuildAudio()
-    val player = getPlayer()
-
-    player.volume = guildAudio.previousVolume
 }
 
 fun Guild.disconnect() {

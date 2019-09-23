@@ -24,7 +24,7 @@ fun playerCommands(config: Configuration) = commands {
             val channel = it.channel as TextChannel
             val member = it.author.toMember(guild)!!
 
-            guild.playSong(member.id, channel, url)
+            guild.playSong(config, member, channel, url)
 
             if (!it.stealthInvocation){
                 it.message.deleteIfExists()
@@ -56,7 +56,7 @@ fun playerCommands(config: Configuration) = commands {
             val channel = it.channel as TextChannel
             val member = it.author.toMember(guild)!!
 
-            guild.playSong(member.id, channel, "$prefix$search", false)
+            guild.playSong(config, member, channel, "$prefix$search", multiSearch = false)
 
             if (!it.stealthInvocation){
                 it.message.deleteIfExists()

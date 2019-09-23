@@ -34,7 +34,7 @@ fun displayTrackEmbed(guild: Guild): MessageEmbed {
 
     return embed {
         color = customBlue
-        thumbnail = guild.getMemberById(guild.fetchCurrentSong() !!.memberID)?.user?.avatarUrl ?: defaultImage.random()
+        thumbnail = guild.getMemberById(guild.fetchCurrentSong()!!.memberID)?.user?.avatarUrl ?: defaultImage.random()
         val songSize = songList.size
 
         songList.forEachIndexed { index, song ->
@@ -61,7 +61,7 @@ fun addSongEmbed(header: String, description: String, time: Long) = embed {
 
 fun displayNoSongEmbed() = embed {
     addField("There are no more songs currently in the queue. ",
-        "If you would like to add a song, use the `Play` command.")
+        "If you would like to add a song, use the `Play` or `Search` command.")
     color = customRed
 }
 
