@@ -24,10 +24,13 @@ class InfoService(private val configuration: Configuration) {
 
         color = Color.green
         thumbnail = self.effectiveAvatarUrl
-        addField(self.fullName(), "A music bot for discord.")
-        addInlineField("Author", "[$author](https://discordapp.com/users/167417801873555456/)")
+        addField(self.fullName(), "A multi-guild music bot for discord.")
         addInlineField("Version", version)
         addInlineField("Prefix", configuration.prefix)
-        addInlineField("Source", source)
+        addInlineField("Author", "[$author](https://discordapp.com/users/167417801873555456/)")
+        addInlineField("Contributors",
+                "[JakeyWakey#1569](https://discordapp.com/users/254786431656919051/)\n" +
+                "[Elliott#0001](https://discordapp.com/users/335628039302021121/)")
+        addField("Source", "[$source]($source)")
     }
 }
