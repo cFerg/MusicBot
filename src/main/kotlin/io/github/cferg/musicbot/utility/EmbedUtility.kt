@@ -9,18 +9,12 @@ private val customGreen = Color(0x14B878)
 private val customBlue = Color(0x00BFFF)
 private val customRed = Color(0xFF4000)
 
-private val defaultImage = listOf(
-    "https://i.imgur.com/DzVDu0c.gif",
-    "https://i.imgur.com/0W8ZoUs.gif",
-    "https://i.imgur.com/EZm2asN.gif"
-)
-
 fun currentTrackEmbed(guild: Guild): MessageEmbed {
     val currentSong = guild.fetchCurrentSong() ?: return displayNoSongEmbed()
 
     return embed {
         color = customBlue
-        thumbnail = guild.getMemberById(currentSong.memberID)?.user?.avatarUrl ?: defaultImage.random()
+        thumbnail = guild.getMemberById(currentSong.memberID)?.user?.effectiveAvatarUrl
 
         addField("Now Playing:", formatSong(currentSong, guild))
     }
@@ -34,7 +28,7 @@ fun displayTrackEmbed(guild: Guild): MessageEmbed {
 
     return embed {
         color = customBlue
-        thumbnail = guild.getMemberById(guild.fetchCurrentSong()!!.memberID)?.user?.avatarUrl ?: defaultImage.random()
+        thumbnail = guild.getMemberById(guild.fetchCurrentSong()!!.memberID)?.user?.effectiveAvatarUrl
         val songSize = songList.size
 
         songList.forEachIndexed { index, song ->
