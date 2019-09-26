@@ -12,10 +12,14 @@ import net.dv8tion.jda.api.entities.*
 @Service
 class PermissionsService(private val config: Configuration, discord: Discord) {
     init {
-        discord.configuration.visibilityPredicate = { command: Command, user: User, _: MessageChannel, guild: Guild? ->
-            when {
-                command.category == MANAGEMENT_CATEGORY -> user.toMember(guild!!)?.isOwner ?: false
-                command.category == MODERATION_CATEGORY -> user.toMember(guild!!)?.roles?.any {it.id == config.guildConfigurations[guild.id]?.staffRole} ?: false
+        discord.configuration.visibilityPredicate = predicate@{ command: Command, user: User, _: MessageChannel, guild: Guild? ->
+            guild ?: return@predicate false
+            val guildConfiguration = config.guildConfigurations[guild.id] ?: return@predicate false
+            val member = user.toMember(guild)!!
+
+            when (command.category) {
+                MANAGEMENT_CATEGORY -> member.isOwner
+                MODERATION_CATEGORY -> member.roles.any { it.id == guildConfiguration.staffRole }
                 else -> true
             }
         }
