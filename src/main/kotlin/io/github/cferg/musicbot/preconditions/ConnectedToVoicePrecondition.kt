@@ -10,9 +10,9 @@ fun isConnectedToVoiceChannel() = exit@{ event: CommandEvent ->
 
     val command = event.container.commands[event.commandStruct.commandName] ?: return@exit Pass
 
-    if (command.category == Constants.MODERATION_CATEGORY ||
-        command.category == Constants.MANAGEMENT_CATEGORY ||
-        command.category == Constants.UTILITY_CATEGORY) return@exit Pass
+    val passCategories = listOf(Constants.MODERATION_CATEGORY, Constants.MANAGEMENT_CATEGORY, Constants.UTILITY_CATEGORY)
+    
+    if (command.category in passCategories) return@exit Pass
 
     event.message.member!!.voiceState?.channel
         ?: return@exit Fail("Please join a voice channel to use this command.")

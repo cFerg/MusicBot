@@ -21,19 +21,21 @@ fun getCommand(config: Configuration) = exit@{ event: CommandEvent ->
 
         val command = event.container.commands[event.commandStruct.commandName] ?: return@exit Pass
 
-        if (command.category == Constants.UTILITY_CATEGORY) return@exit Pass //No need to log these commands
+        when (command.category) {
+            Constants.UTILITY_CATEGORY -> return@exit Pass //No need to log these commands
 
-        if (command.category == Constants.MANAGEMENT_CATEGORY){
-            if (!user.isOwner) return@exit Fail("Only the owner can type these commands.")
+            Constants.MANAGEMENT_CATEGORY -> {
+                if (!user.isOwner) return@exit Fail("Only the owner can type these commands.")
 
-            return@exit Pass //No need to log these commands
-        }
+                return@exit Pass //No need to log these commands
+            }
 
-        if (command.category == Constants.MODERATION_CATEGORY){
-            val staffRole = config.guildConfigurations[guild.id]?.staffRole
-            val isStaff = user.roles.any { staff -> staff.id == staffRole }
+            Constants.MODERATION_CATEGORY -> {
+                val staffRole = config.guildConfigurations[guild.id]?.staffRole
+                val isStaff = user.roles.any { staff -> staff.id == staffRole }
 
-            if (!isStaff) return@exit Fail("Only staff can type these commands.")
+                if (!isStaff) return@exit Fail("Only staff can type these commands.")
+            }
         }
 
         val guildConfig = config.guildConfigurations[guild.id] ?: return@exit Pass
