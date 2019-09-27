@@ -39,10 +39,10 @@ fun getCommand(config: Configuration) = exit@{ event: CommandEvent ->
         val guildConfig = config.guildConfigurations[guild.id] ?: return@exit Pass
         val textChannel = guild.getTextChannelById(guildConfig.loggingChannelID) ?: return@exit Pass
 
-        var argList = ""
-
-        for (i in event.commandStruct.commandArgs) {
-            argList += "$i "
+        val argList = buildString {
+            event.commandStruct.commandArgs.forEach { arg ->
+                append("$arg ")
+            }
         }
 
         val display = embed {
