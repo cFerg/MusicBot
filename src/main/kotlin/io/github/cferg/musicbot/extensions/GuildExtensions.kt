@@ -11,14 +11,15 @@ import me.aberrantfox.kjdautils.extensions.jda.fullName
 import net.dv8tion.jda.api.entities.*
 import java.awt.Color
 import java.util.*
-import kotlin.concurrent.timerTask
+import kotlin.concurrent.*
 
 data class Song(val track: AudioTrack, val memberID: String, val channelID: String)
 
 private data class GuildAudio(val player: AudioPlayer,
                               val playerManager: DefaultAudioPlayerManager,
                               val songQueue: ArrayDeque<Song>,
-                              var previousVolume: Int = 30)
+                              var previousVolume: Int = 30,
+                              var disconnectTimer: TimerTask? = null)
 
 private val guildAudioMap = mutableMapOf<String, GuildAudio>()
 
@@ -182,6 +183,7 @@ fun Guild.nextSong() {
         audioManager.openAudioConnection(currentVC)
 
         playTrack(songList.first.track)
+        stopTimer()
     } else {
         stopTrack()
         textChannel.sendMessage(displayNoSongEmbed()).queue()
@@ -305,17 +307,20 @@ fun Guild.timeUntilLast(): Long {
     return songList.sumBy { it.track.duration.toInt() } - currentSongPosition
 }
 
-fun Guild.startTimer() {
-    var time = 30
-    Timer().scheduleAtFixedRate(timerTask {
-        if (time > 0){
-            if(fetchCurrentSong() != null){
-                this.cancel()
-            }
-            time--
-        }else {
-            disconnect()
-            this.cancel()
-        }
-    },1000, 10000)
+private fun Guild.startTimer() {
+    val minutes = 5 * 60 * 1000L
+    val guildAudio = getGuildAudio()
+
+    guildAudio.disconnectTimer = Timer().schedule(minutes) {
+        disconnect()
+    }
+}
+
+private fun Guild.stopTimer() {
+    val guildAudio = getGuildAudio()
+
+    val timer = guildAudio.disconnectTimer ?: return
+    timer.cancel()
+
+    guildAudio.disconnectTimer = null
 }
