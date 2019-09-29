@@ -98,6 +98,8 @@ fun Guild.playSong(config: Configuration, member: Member, channel: TextChannel, 
                 fetchUpcomingSongs().addFirst(Song(track, member.id, channel.id))
             }
 
+            stopTimer()
+
             if (startTrack(track, noInterrupt)) {
                 val currentVC: VoiceChannel? = member.voiceState?.channel
                     ?: return channel.sendMessage("Please join a voice channel to use this command.").queue()
