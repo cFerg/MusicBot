@@ -117,13 +117,15 @@ fun moderationCommands(config: Configuration, persistenceService: PersistenceSer
             val guildConfig = config.guildConfigurations[guild.id]
                 ?: return@execute it.respond("Issue retrieving configurations.")
 
-            val response = if (guildConfig.ignoreList.contains(member.id)) {
-                guildConfig.ignoreList.remove(member.id)
-                persistenceService.save(config)
-                "${member.effectiveName} is now removed from the bot blacklist."
-            } else {
-                "${member.effectiveName} is not currently in the bot blacklist."
-            }
+            val wasRemoved = guildConfig.ignoreList.remove(member.id)
+
+            val response =
+                if (wasRemoved) {
+                    persistenceService.save(config)
+                    "${member.effectiveName} is now removed from the bot blacklist."
+                } else {
+                    "${member.effectiveName} is not currently in the bot blacklist."
+                }
 
             it.respond(response)
         }

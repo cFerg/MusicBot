@@ -2,14 +2,10 @@ package io.github.cferg.musicbot.commands
 
 import io.github.cferg.musicbot.data.Configuration
 import io.github.cferg.musicbot.extensions.*
-import io.github.cferg.musicbot.utility.displayNoSongEmbed
-import io.github.cferg.musicbot.utility.displayTrackEmbed
+import io.github.cferg.musicbot.utility.*
 import me.aberrantfox.kjdautils.api.dsl.*
-import me.aberrantfox.kjdautils.extensions.jda.deleteIfExists
-import me.aberrantfox.kjdautils.extensions.jda.toMember
-import me.aberrantfox.kjdautils.internal.arguments.ChoiceArg
-import me.aberrantfox.kjdautils.internal.arguments.SentenceArg
-import me.aberrantfox.kjdautils.internal.arguments.UrlArg
+import me.aberrantfox.kjdautils.extensions.jda.*
+import me.aberrantfox.kjdautils.internal.arguments.*
 import net.dv8tion.jda.api.entities.TextChannel
 
 @CommandSet("Player")
@@ -35,21 +31,15 @@ fun playerCommands(config: Configuration) = commands {
     command("Search") {
         description = "Search a song based on keywords."
         requiresGuild = true
-        expect(ChoiceArg("YouTube | YT | SoundCloud | SC", "SC", "YT", "SoundCloud", "YouTube"), SentenceArg)
+        expect(ChoiceArg("YouTube | YT | SoundCloud | SC", "SC", "YT", "SoundCloud", "YouTube"), SentenceArg("Search"))
         execute {
             val engine = it.args.component1() as String
             val search = it.args.component2() as String
 
             val prefix = when (engine.toLowerCase()){
-                "youtube", "yt" -> {
-                    "ytsearch:"
-                }
-                "soundcloud", "sc" -> {
-                    "scsearch:"
-                }
-                else -> {
-                    return@execute
-                }
+                "youtube", "yt" -> "ytsearch:"
+                "soundcloud", "sc" -> "scsearch:"
+                else -> return@execute
             }
 
             val guild = it.guild!!
