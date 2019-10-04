@@ -8,7 +8,7 @@ fun utilityCommands(infoService: InfoService) = commands {
     command("Ping") {
         description = "Displays network ping of the bot!"
         execute {
-            it.respond("Pong: ${it.discord.jda.gatewayPing}ms")
+            it.respond("Pong: ${it.discord.jda.restPing}ms")
         }
     }
 
@@ -21,7 +21,6 @@ fun utilityCommands(infoService: InfoService) = commands {
 
     command("BotInfo") {
         description = "Displays the bot information."
-        requiresGuild = true
         execute {
             it.respond(infoService.botInfo(it.guild!!))
         }

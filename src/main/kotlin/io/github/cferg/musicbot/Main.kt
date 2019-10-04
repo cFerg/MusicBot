@@ -8,7 +8,7 @@ fun main(args: Array<String>) {
 
     startBot(token) {
         configure {
-            globalPath = "io.github.cferg.musicbot"
+            allowPrivateMessages = false
         }
     }
 }

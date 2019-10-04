@@ -12,8 +12,7 @@ import net.dv8tion.jda.api.entities.*
 fun moderationCommands(config: Configuration, persistenceService: PersistenceService) = commands {
     command("Hoist") {
         description = "Force the song to play, pushing the rest back one in queue."
-        requiresGuild = true
-        expect(UrlArg)
+        expect(UrlArg("URL"))
         execute {
             val url = it.args.component1() as String
             val guild = it.guild!!
@@ -26,7 +25,6 @@ fun moderationCommands(config: Configuration, persistenceService: PersistenceSer
 
     command("Restart") {
         description = "Replays the current song from the beginning."
-        requiresGuild = true
         execute {
             val guild = it.guild!!
             if(!guild.restartTrack()){
@@ -37,7 +35,6 @@ fun moderationCommands(config: Configuration, persistenceService: PersistenceSer
 
     command("Clear") {
         description = "Removes all currently queued songs."
-        requiresGuild = true
         execute {
             val guild = it.guild!!
             guild.clear()
@@ -46,8 +43,7 @@ fun moderationCommands(config: Configuration, persistenceService: PersistenceSer
 
     command("Volume") {
         description = "Adjust volume from range 0-100"
-        requiresGuild = true
-        expect(IntegerRangeArg(min = 0, max = 100))
+        expect(IntegerRangeArg(min = 0, max = 100, name = "Range 0-100"))
         execute {
             val targetVolume = it.args.component1() as Int
             val guild = it.guild!!
@@ -59,7 +55,6 @@ fun moderationCommands(config: Configuration, persistenceService: PersistenceSer
 
     command("Mute") {
         description = "Mute bot, but keeps it playing."
-        requiresGuild = true
         execute {
             val guild = it.guild!!
 
@@ -73,7 +68,6 @@ fun moderationCommands(config: Configuration, persistenceService: PersistenceSer
 
     command("Unmute") {
         description = "Sets bot's volume back to previous level before it was muted."
-        requiresGuild = true
         execute {
             val guild = it.guild!!
 
@@ -87,8 +81,7 @@ fun moderationCommands(config: Configuration, persistenceService: PersistenceSer
 
     command("Ignore") {
         description = "Add the member to a bot blacklist."
-        requiresGuild = true
-        expect(MemberArg)
+        expect(MemberArg("Member ID or Mention"))
         execute {
             val guild = it.guild!!
             val member = it.args.component1() as Member
@@ -109,8 +102,7 @@ fun moderationCommands(config: Configuration, persistenceService: PersistenceSer
 
     command("Unignore") {
         description = "Removes the member from a bot blacklist."
-        requiresGuild = true
-        expect(MemberArg)
+        expect(MemberArg("Member ID or Mention"))
         execute {
             val guild = it.guild!!
             val member = it.args.component1() as Member

@@ -11,7 +11,6 @@ import net.dv8tion.jda.api.entities.*
 fun managementCommands(config: Configuration, persistenceService: PersistenceService) = commands {
     command("Disconnect") {
         description = "Remove the bot from its current voice channel."
-        requiresGuild = true
         execute {
             val guild = it.guild!!
             guild.disconnect()
@@ -20,8 +19,7 @@ fun managementCommands(config: Configuration, persistenceService: PersistenceSer
 
     command("StaffRole") {
         description = "Sets a Staff role for moderation commands"
-        requiresGuild = true
-        expect(RoleArg("Role"))
+        expect(RoleArg("Role Name"))
         execute {
             val role = it.args.component1() as Role
             val guild = it.guild!!
@@ -35,8 +33,7 @@ fun managementCommands(config: Configuration, persistenceService: PersistenceSer
 
     command("PlaylistRole") {
         description = "Sets a role on who can add playlists"
-        requiresGuild = true
-        expect(RoleArg("Role name"))
+        expect(RoleArg("Role Name"))
         execute {
             val guild = it.guild!!
             val guildConfig = config.guildConfigurations[guild.id]!!
@@ -51,7 +48,6 @@ fun managementCommands(config: Configuration, persistenceService: PersistenceSer
 
     command("PlaylistRoleClear") {
         description = "Removes a role, letting everyone add playlists."
-        requiresGuild = true
         execute {
             val guild = it.guild!!
             val guildConfig = config.guildConfigurations[guild.id]!!
@@ -64,8 +60,7 @@ fun managementCommands(config: Configuration, persistenceService: PersistenceSer
 
     command("Logging") {
         description = "Sets a Logging Channel to send bot command invokes to."
-        requiresGuild = true
-        expect(TextChannelArg)
+        expect(TextChannelArg("Text Channel Name"))
         execute {
             val channel = it.args.component1() as TextChannel
             val guild = it.guild!!
@@ -79,7 +74,6 @@ fun managementCommands(config: Configuration, persistenceService: PersistenceSer
 
     command("PlaylistLimit") {
         description = "Sets a maximum playlist song limit | Set to 0 for no limits."
-        requiresGuild = true
         expect(IntegerArg("Song Limit"))
         execute {
             val limit = it.args.component1() as Int
@@ -94,7 +88,6 @@ fun managementCommands(config: Configuration, persistenceService: PersistenceSer
 
     command("SongDuration") {
         description = "Sets a maximum song duration limit | Set to 0 for no limits."
-        requiresGuild = true
         expect(TimeStringArg("Time"))
         execute {
             val time = it.args.component1() as Double
@@ -109,7 +102,6 @@ fun managementCommands(config: Configuration, persistenceService: PersistenceSer
 
     command("SongLimit") {
         description = "Sets how many songs a person can queue at a given time | Set to 0 for no limits."
-        requiresGuild = true
         expect(IntegerArg("Song Limit"))
         execute {
             val limit = it.args.component1() as Int
@@ -124,8 +116,7 @@ fun managementCommands(config: Configuration, persistenceService: PersistenceSer
 
     command("Setup") {
         description = "Setups the configuration for a guild."
-        requiresGuild = true
-        expect(RoleArg("Role"), TextChannelArg)
+        expect(RoleArg("Role Name"), TextChannelArg("Text Channel Name"))
         execute {
             val role = it.args.component1() as Role
             val channel = it.args.component2() as TextChannel
@@ -149,8 +140,7 @@ fun managementCommands(config: Configuration, persistenceService: PersistenceSer
 
     command("Prefix") {
         description = "Sets the prefix for the bot."
-        requiresGuild = true
-        expect(CharArg)
+        expect(CharArg("Prefix Character"))
         execute {
             config.prefix = it.args.component1() as String
             persistenceService.save(config)
