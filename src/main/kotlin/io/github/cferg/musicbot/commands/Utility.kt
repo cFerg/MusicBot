@@ -8,7 +8,9 @@ fun utilityCommands(infoService: InfoService) = commands {
     command("Ping") {
         description = "Displays network ping of the bot!"
         execute {
-            it.respond("Pong: ${it.discord.jda.restPing}ms")
+            it.discord.jda.restPing.queue{ ping ->
+                it.respond("Pong: ${ping}ms")
+            }
         }
     }
 
