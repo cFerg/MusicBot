@@ -2,10 +2,9 @@ package io.github.cferg.musicbot.commands
 
 import io.github.cferg.musicbot.data.*
 import io.github.cferg.musicbot.extensions.*
-import me.aberrantfox.kjdautils.api.dsl.*
+import me.aberrantfox.kjdautils.api.dsl.command.*
 import me.aberrantfox.kjdautils.internal.arguments.*
 import me.aberrantfox.kjdautils.internal.di.PersistenceService
-import net.dv8tion.jda.api.entities.*
 
 @CommandSet("Management")
 fun managementCommands(config: Configuration, persistenceService: PersistenceService) = commands {
@@ -19,9 +18,8 @@ fun managementCommands(config: Configuration, persistenceService: PersistenceSer
 
     command("StaffRole") {
         description = "Sets a Staff role for moderation commands"
-        expect(RoleArg("Role Name"))
-        execute {
-            val role = it.args.component1() as Role
+        execute(RoleArg("Role Name")) {
+            val (role) = it.args
             val guild = it.guild!!
             val guildConfig = config.guildConfigurations[guild.id]!!
 
@@ -33,12 +31,11 @@ fun managementCommands(config: Configuration, persistenceService: PersistenceSer
 
     command("PlaylistRole") {
         description = "Sets a role on who can add playlists"
-        expect(RoleArg("Role Name"))
-        execute {
+        execute(RoleArg("Role Name")) {
             val guild = it.guild!!
             val guildConfig = config.guildConfigurations[guild.id]!!
 
-            val role = it.args.component1() as Role
+            val (role) = it.args
             guildConfig.playlistRole = role.id
             it.respond("Assigned the Playlist Role to ${role.name}")
 
@@ -60,9 +57,8 @@ fun managementCommands(config: Configuration, persistenceService: PersistenceSer
 
     command("Logging") {
         description = "Sets a Logging Channel to send bot command invokes to."
-        expect(TextChannelArg("Text Channel Name"))
-        execute {
-            val channel = it.args.component1() as TextChannel
+        execute(TextChannelArg("Text Channel Name")) {
+            val (channel) = it.args
             val guild = it.guild!!
             val guildConfig = config.guildConfigurations[guild.id]!!
 
@@ -74,9 +70,8 @@ fun managementCommands(config: Configuration, persistenceService: PersistenceSer
 
     command("PlaylistLimit") {
         description = "Sets a maximum playlist song limit | Set to 0 for no limits."
-        expect(IntegerArg("Song Limit"))
-        execute {
-            val limit = it.args.component1() as Int
+        execute(IntegerArg("Song Limit")) {
+            val (limit) = it.args
             val guild = it.guild!!
             val guildConfig = config.guildConfigurations[guild.id]!!
 
@@ -88,9 +83,8 @@ fun managementCommands(config: Configuration, persistenceService: PersistenceSer
 
     command("SongDuration") {
         description = "Sets a maximum song duration limit | Set to 0 for no limits."
-        expect(TimeStringArg("Time"))
-        execute {
-            val time = it.args.component1() as Double
+        execute(TimeStringArg("Time")) {
+            val (time) = it.args
             val guild = it.guild!!
             val guildConfig = config.guildConfigurations[guild.id]!!
             guildConfig.songMaxDuration = time.toLong() * 1000
@@ -102,9 +96,8 @@ fun managementCommands(config: Configuration, persistenceService: PersistenceSer
 
     command("SongLimit") {
         description = "Sets how many songs a person can queue at a given time | Set to 0 for no limits."
-        expect(IntegerArg("Song Limit"))
-        execute {
-            val limit = it.args.component1() as Int
+        execute(IntegerArg("Song Limit")) {
+            val (limit) = it.args
             val guild = it.guild!!
             val guildConfig = config.guildConfigurations[guild.id]!!
 
@@ -116,10 +109,8 @@ fun managementCommands(config: Configuration, persistenceService: PersistenceSer
 
     command("Setup") {
         description = "Setups the configuration for a guild."
-        expect(RoleArg("Role Name"), TextChannelArg("Text Channel Name"))
-        execute {
-            val role = it.args.component1() as Role
-            val channel = it.args.component2() as TextChannel
+        execute(RoleArg("Role Name"), TextChannelArg("Text Channel Name")) {
+            val (role, channel) = it.args
             val guild = it.guild!!
             val guildConfig = config.guildConfigurations
 
@@ -140,9 +131,9 @@ fun managementCommands(config: Configuration, persistenceService: PersistenceSer
 
     command("Prefix") {
         description = "Sets the prefix for the bot."
-        expect(CharArg("Prefix Character"))
-        execute {
-            config.prefix = it.args.component1() as String
+        execute(CharArg("Prefix Character")) {
+            val (letter) = it.args
+            config.prefix = letter.toString()
             persistenceService.save(config)
         }
     }

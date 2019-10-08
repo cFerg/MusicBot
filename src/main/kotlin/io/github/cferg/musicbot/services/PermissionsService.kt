@@ -4,7 +4,7 @@ import io.github.cferg.musicbot.data.Configuration
 import io.github.cferg.musicbot.utility.Constants.Companion.MANAGEMENT_CATEGORY
 import io.github.cferg.musicbot.utility.Constants.Companion.MODERATION_CATEGORY
 import me.aberrantfox.kjdautils.api.annotation.Service
-import me.aberrantfox.kjdautils.api.dsl.Command
+import me.aberrantfox.kjdautils.api.dsl.command.Command
 import me.aberrantfox.kjdautils.discord.Discord
 import me.aberrantfox.kjdautils.extensions.jda.toMember
 import net.dv8tion.jda.api.entities.*

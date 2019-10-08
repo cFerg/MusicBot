@@ -1,6 +1,9 @@
 package io.github.cferg.musicbot
 
+import io.github.cferg.musicbot.utility.botInfo
 import me.aberrantfox.kjdautils.api.startBot
+
+lateinit var botPrefix: String
 
 fun main(args: Array<String>) {
     val token = args.firstOrNull()
@@ -9,6 +12,9 @@ fun main(args: Array<String>) {
     startBot(token) {
         configure {
             allowPrivateMessages = false
+            mentionEmbed = { event -> botInfo(event.guild) }
         }
+
+        botPrefix = config.prefix
     }
 }

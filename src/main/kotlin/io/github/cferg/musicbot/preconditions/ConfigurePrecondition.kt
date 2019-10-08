@@ -2,10 +2,11 @@ package io.github.cferg.musicbot.preconditions
 
 import io.github.cferg.musicbot.data.Configuration
 import me.aberrantfox.kjdautils.api.dsl.*
+import me.aberrantfox.kjdautils.api.dsl.command.CommandEvent
 import me.aberrantfox.kjdautils.internal.command.*
 
 @Precondition(priority = 0)
-fun isConfigured(config: Configuration) = precondition { event: CommandEvent ->
+fun isConfigured(config: Configuration) = precondition { event: CommandEvent<*> ->
     val guild = event.guild ?: return@precondition Fail("**Failure:** This command must be ran in a guild.")
 
     if (event.commandStruct.commandName.equals("Setup", true)) return@precondition Pass

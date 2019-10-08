@@ -2,7 +2,7 @@ package io.github.cferg.musicbot.commands
 
 import io.github.cferg.musicbot.data.Configuration
 import io.github.cferg.musicbot.extensions.*
-import me.aberrantfox.kjdautils.api.dsl.*
+import me.aberrantfox.kjdautils.api.dsl.command.*
 import me.aberrantfox.kjdautils.extensions.jda.toMember
 import me.aberrantfox.kjdautils.internal.arguments.*
 import me.aberrantfox.kjdautils.internal.di.PersistenceService
@@ -12,9 +12,8 @@ import net.dv8tion.jda.api.entities.*
 fun moderationCommands(config: Configuration, persistenceService: PersistenceService) = commands {
     command("Hoist") {
         description = "Force the song to play, pushing the rest back one in queue."
-        expect(UrlArg("URL"))
-        execute {
-            val url = it.args.component1() as String
+        execute(UrlArg("URL")) {
+            val (url) = it.args
             val guild = it.guild!!
             val channel = it.channel as TextChannel
             val member = it.author.toMember(guild)!!
@@ -43,9 +42,8 @@ fun moderationCommands(config: Configuration, persistenceService: PersistenceSer
 
     command("Volume") {
         description = "Adjust volume from range 0-100"
-        expect(IntegerRangeArg(min = 0, max = 100, name = "Range 0-100"))
-        execute {
-            val targetVolume = it.args.component1() as Int
+        execute(IntegerRangeArg(min = 0, max = 100, name = "Range 0-100")) {
+            val (targetVolume) = it.args
             val guild = it.guild!!
 
             guild.setPlayerVolume(targetVolume)
@@ -81,10 +79,9 @@ fun moderationCommands(config: Configuration, persistenceService: PersistenceSer
 
     command("Ignore") {
         description = "Add the member to a bot blacklist."
-        expect(MemberArg("Member ID or Mention"))
-        execute {
+        execute(MemberArg("Member ID or Mention")) {
             val guild = it.guild!!
-            val member = it.args.component1() as Member
+            val (member) = it.args
             val guildConfig = config.guildConfigurations[guild.id]
                 ?: return@execute it.respond("Issue retrieving configurations.")
 
@@ -102,10 +99,9 @@ fun moderationCommands(config: Configuration, persistenceService: PersistenceSer
 
     command("Unignore") {
         description = "Removes the member from a bot blacklist."
-        expect(MemberArg("Member ID or Mention"))
-        execute {
+        execute(MemberArg("Member ID or Mention")){
             val guild = it.guild!!
-            val member = it.args.component1() as Member
+            val (member) = it.args
             val guildConfig = config.guildConfigurations[guild.id]
                 ?: return@execute it.respond("Issue retrieving configurations.")
 

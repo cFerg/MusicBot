@@ -1,7 +1,10 @@
 package io.github.cferg.musicbot.utility
 
+import com.google.gson.Gson
+import io.github.cferg.musicbot.botPrefix
 import io.github.cferg.musicbot.extensions.*
 import me.aberrantfox.kjdautils.api.dsl.embed
+import me.aberrantfox.kjdautils.extensions.jda.fullName
 import net.dv8tion.jda.api.entities.*
 import java.awt.Color
 
@@ -73,4 +76,28 @@ private fun formatSong(song: Song, guild: Guild, header: String = "- **Song**:")
         "- **Artist**: ${trackInfo.author}\n" +
         "- **Duration**: ${track.duration.toTimeString()}\n" +
         "- **Queued by**: ${guild.getMemberById(song.memberID)?.asMention}"
+}
+
+private data class Properties(val version: String, val author: String, val repository: String)
+
+private val propFile = Properties::class.java.getResource("/properties.json").readText()
+private val project = Gson().fromJson(propFile, Properties::class.java)
+
+private val version = project.version
+private val author = project.author
+val source = project.repository
+
+fun botInfo(guild: Guild) = embed {
+    val self = guild.jda.selfUser
+
+    color = customGreen
+    thumbnail = self.effectiveAvatarUrl
+    addField(self.fullName(), "A multi-guild music bot for discord.")
+    addInlineField("Version", version)
+    addInlineField("Prefix", botPrefix)
+    addInlineField("Author", "[${author}](https://discordapp.com/users/167417801873555456/)")
+    addInlineField("Contributors",
+            "[JakeyWakey#1569](https://discordapp.com/users/254786431656919051/)\n" +
+                    "[Elliott#0001](https://discordapp.com/users/335628039302021121/)")
+    addField("Source", "[$source]($source)")
 }

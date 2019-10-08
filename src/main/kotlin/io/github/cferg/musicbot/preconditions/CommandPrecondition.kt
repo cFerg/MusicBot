@@ -2,6 +2,7 @@ package io.github.cferg.musicbot.preconditions
 
 import io.github.cferg.musicbot.data.Configuration
 import io.github.cferg.musicbot.utility.Constants
+import me.aberrantfox.kjdautils.api.dsl.command.CommandEvent
 import me.aberrantfox.kjdautils.api.dsl.*
 import me.aberrantfox.kjdautils.extensions.jda.*
 import me.aberrantfox.kjdautils.internal.command.*
@@ -9,7 +10,7 @@ import net.dv8tion.jda.api.entities.TextChannel
 import java.awt.Color
 
 @Precondition(priority = 4)
-fun getCommand(config: Configuration) = precondition{ event: CommandEvent ->
+fun getCommand(config: Configuration) = precondition{ event: CommandEvent<*> ->
     with(event) {
         if (event.channel !is TextChannel) return@precondition Fail("**Failure:** This command must be executed in a text channel.")
         val guild = guild ?: return@precondition Fail("**Failure:** This command must be ran in a guild.")

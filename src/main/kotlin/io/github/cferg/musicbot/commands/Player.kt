@@ -3,7 +3,7 @@ package io.github.cferg.musicbot.commands
 import io.github.cferg.musicbot.data.Configuration
 import io.github.cferg.musicbot.extensions.*
 import io.github.cferg.musicbot.utility.*
-import me.aberrantfox.kjdautils.api.dsl.*
+import me.aberrantfox.kjdautils.api.dsl.command.*
 import me.aberrantfox.kjdautils.extensions.jda.*
 import me.aberrantfox.kjdautils.internal.arguments.*
 import net.dv8tion.jda.api.entities.TextChannel
@@ -12,9 +12,8 @@ import net.dv8tion.jda.api.entities.TextChannel
 fun playerCommands(config: Configuration) = commands {
     command("Play") {
         description = "Play the song listed - If a song is already playing, it's added to a queue."
-        expect(UrlArg("URL"))
-        execute {
-            val url = it.args.component1() as String
+        execute(UrlArg("URL")){
+            val (url) = it.args
             val guild = it.guild!!
             val channel = it.channel as TextChannel
             val member = it.author.toMember(guild)!!
@@ -29,10 +28,8 @@ fun playerCommands(config: Configuration) = commands {
 
     command("Search") {
         description = "Search a song based on keywords."
-        expect(ChoiceArg("YouTube | YT | SoundCloud | SC", "SC", "YT", "SoundCloud", "YouTube"), SentenceArg("Search"))
-        execute {
-            val engine = it.args.component1() as String
-            val search = it.args.component2() as String
+        execute(ChoiceArg("YouTube | YT | SoundCloud | SC", "SC", "YT", "SoundCloud", "YouTube"), SentenceArg("Search")){
+            val (engine, search) = it.args
 
             val prefix = when (engine.toLowerCase()){
                 "youtube", "yt" -> "ytsearch:"
