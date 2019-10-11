@@ -29,8 +29,7 @@
     <distributionManagement>
         <repository>
             <id>github</id>
-            <name>GitHub OWNER Apache Maven Packages</name>
-            <url>https://maven.pkg.github.com/cferg/musicbot</url>
+            <url>https://maven.pkg.github.com/cFerg/musicbot</url>
         </repository>
     </distributionManagement>
 
