@@ -17,7 +17,7 @@ fun currentTrackEmbed(guild: Guild): MessageEmbed {
 
     return embed {
         color = customBlue
-        thumbnail = guild.getMemberById(currentSong.memberID)?.user?.effectiveAvatarUrl
+        thumbnail = currentSong.track.info.artworkUrl
 
         addField("Now Playing:", formatSong(currentSong, guild))
     }
@@ -31,7 +31,7 @@ fun displayTrackEmbed(guild: Guild): MessageEmbed {
 
     return embed {
         color = customBlue
-        thumbnail = guild.getMemberById(guild.fetchCurrentSong()!!.memberID)?.user?.effectiveAvatarUrl
+        thumbnail = songList.first.track.info.artworkUrl
         val songSize = songList.size
 
         songList.forEachIndexed { index, song ->
@@ -100,4 +100,28 @@ fun botInfo(guild: Guild) = embed {
             "[JakeyWakey#1569](https://discordapp.com/users/254786431656919051/)\n" +
                     "[Elliott#0001](https://discordapp.com/users/335628039302021121/)")
     addField("Source", "[$source]($source)")
+}
+
+fun configurationNeeded(guild: Guild, vararg lines: String) = embed {
+    color = customRed
+
+    var paragraph = ""
+
+    lines.forEach { line ->
+        paragraph += "\n$line"
+    }
+
+    addField("Configuration needed for: **__${guild.name}__**", paragraph)
+}
+
+fun configurationSuccessful(vararg lines: String) = embed {
+    color = customGreen
+
+    var paragraph = ""
+
+    lines.forEach { line ->
+        paragraph += "\n$line"
+    }
+
+    addField("Thank you - The Server is now setup!", paragraph)
 }

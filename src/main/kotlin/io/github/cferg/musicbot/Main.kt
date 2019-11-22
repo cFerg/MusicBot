@@ -13,6 +13,7 @@ fun main(args: Array<String>) {
         configure {
             allowPrivateMessages = false
             mentionEmbed = { event -> botInfo(event.guild) }
+            reactToCommands = false
         }
 
         botPrefix = config.prefix

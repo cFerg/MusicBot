@@ -16,7 +16,7 @@ fun managementCommands(config: Configuration, persistenceService: PersistenceSer
         }
     }
 
-    command("StaffRole") {
+    command("SetStaffRole") {
         description = "Sets a Staff role for moderation commands"
         execute(RoleArg("Role Name")) {
             val (role) = it.args
@@ -29,7 +29,7 @@ fun managementCommands(config: Configuration, persistenceService: PersistenceSer
         }
     }
 
-    command("PlaylistRole") {
+    command("SetPlaylistRole") {
         description = "Sets a role on who can add playlists"
         execute(RoleArg("Role Name")) {
             val guild = it.guild!!
@@ -43,7 +43,7 @@ fun managementCommands(config: Configuration, persistenceService: PersistenceSer
         }
     }
 
-    command("PlaylistRoleClear") {
+    command("RemovePlaylistRole") {
         description = "Removes a role, letting everyone add playlists."
         execute {
             val guild = it.guild!!
@@ -55,7 +55,7 @@ fun managementCommands(config: Configuration, persistenceService: PersistenceSer
         }
     }
 
-    command("Logging") {
+    command("SetLoggingChannel") {
         description = "Sets a Logging Channel to send bot command invokes to."
         execute(TextChannelArg("Text Channel Name")) {
             val (channel) = it.args
@@ -68,7 +68,7 @@ fun managementCommands(config: Configuration, persistenceService: PersistenceSer
         }
     }
 
-    command("PlaylistLimit") {
+    command("SetPlaylistLimit") {
         description = "Sets a maximum playlist song limit | Set to 0 for no limits."
         execute(IntegerArg("Song Limit")) {
             val (limit) = it.args
@@ -81,7 +81,19 @@ fun managementCommands(config: Configuration, persistenceService: PersistenceSer
         }
     }
 
-    command("SongDuration") {
+    command("CanReact") {
+        description = "Sets whether to react to commands, with an emote."
+        execute(BooleanArg) {
+            val choice = it.args.first
+            val guild = it.guild!!
+            val guildConfig = config.guildConfigurations[guild.id]!!
+            guildConfig.reactToCommands = choice
+            persistenceService.save(config)
+            it.respond("${if (choice) "Enabled" else "Disabled"} command reactions.")
+        }
+    }
+
+    command("SetSongDuration") {
         description = "Sets a maximum song duration limit | Set to 0 for no limits."
         execute(TimeStringArg("Time")) {
             val (time) = it.args
@@ -94,7 +106,7 @@ fun managementCommands(config: Configuration, persistenceService: PersistenceSer
         }
     }
 
-    command("SongLimit") {
+    command("SetSongLimit") {
         description = "Sets how many songs a person can queue at a given time | Set to 0 for no limits."
         execute(IntegerArg("Song Limit")) {
             val (limit) = it.args
@@ -107,29 +119,7 @@ fun managementCommands(config: Configuration, persistenceService: PersistenceSer
         }
     }
 
-    command("Setup") {
-        description = "Setups the configuration for a guild."
-        execute(RoleArg("Role Name"), TextChannelArg("Text Channel Name")) {
-            val (role, channel) = it.args
-            val guild = it.guild!!
-            val guildConfig = config.guildConfigurations
-
-            if (guild.id in guildConfig){
-                val currentConfig = guildConfig[guild.id]!!
-                currentConfig.staffRole = role.id
-                currentConfig.loggingChannelID = channel.id
-                persistenceService.save(config)
-            }else{
-                config.guildConfigurations[guild.id] = GuildInfo(role.id, channel.id)
-                persistenceService.save(config)
-            }
-
-            it.respond("Assigned the Staff Role to ${role.name}")
-            it.respond("Assigned the Logging Channel to ${channel.name}")
-        }
-    }
-
-    command("Prefix") {
+    command("SetPrefix") {
         description = "Sets the prefix for the bot."
         execute(CharArg("Prefix Character")) {
             val (letter) = it.args

@@ -9,7 +9,7 @@ import me.aberrantfox.kjdautils.internal.command.*
 fun isConnectedToVoiceChannel() = precondition { event: CommandEvent<*> ->
     event.guild ?: return@precondition Fail("This command must be executed in a text channel.")
 
-    val command = event.container.commands[event.commandStruct.commandName] ?: return@precondition Pass
+    val command = event.container[event.commandStruct.commandName] ?: return@precondition Pass
     
     if (command.category != Constants.PLAYER_CATEGORY) return@precondition Pass
 

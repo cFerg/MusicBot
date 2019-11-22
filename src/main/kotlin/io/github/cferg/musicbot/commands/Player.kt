@@ -10,7 +10,7 @@ import net.dv8tion.jda.api.entities.TextChannel
 
 @CommandSet("Player")
 fun playerCommands(config: Configuration) = commands {
-    command("Play") {
+    command("Play", "Add") {
         description = "Play the song listed - If a song is already playing, it's added to a queue."
         execute(UrlArg("URL")){
             val (url) = it.args
@@ -26,8 +26,8 @@ fun playerCommands(config: Configuration) = commands {
         }
     }
 
-    command("Search") {
-        description = "Search a song based on keywords."
+    command("Find", "Search") {
+        description = "Lookup a song based on keywords."
         execute(ChoiceArg("YouTube | YT | SoundCloud | SC", "SC", "YT", "SoundCloud", "YouTube"), SentenceArg("Search")){
             val (engine, search) = it.args
 
@@ -49,8 +49,8 @@ fun playerCommands(config: Configuration) = commands {
         }
     }
 
-    command("Skip") {
-        description = "Skips the current song."
+    command("Skip", "Next") {
+        description = "Skips the current song - Attempts to play the next song."
         execute {
             val guild = it.guild!!
             val currentSong = guild.fetchCurrentSong()
@@ -71,7 +71,7 @@ fun playerCommands(config: Configuration) = commands {
     }
 
     command("List") {
-        description = "Lists the current songs."
+        description = "Displays the current songs."
         execute {
             val guild = it.guild!!
             it.respond(displayTrackEmbed(guild))

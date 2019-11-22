@@ -15,14 +15,14 @@ fun utilityCommands() = commands {
         }
     }
 
-    command("Source") {
+    command("Repo", "Source") {
         description = "Display the (source code) repository link."
         execute {
             it.respond(source)
         }
     }
 
-    command("BotInfo") {
+    command("About", "Info") {
         description = "Displays the bot information."
         execute {
             it.respond(botInfo(it.guild!!))

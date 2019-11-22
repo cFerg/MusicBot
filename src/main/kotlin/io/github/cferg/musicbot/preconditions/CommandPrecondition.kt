@@ -16,27 +16,35 @@ fun getCommand(config: Configuration) = precondition{ event: CommandEvent<*> ->
         val guild = guild ?: return@precondition Fail("**Failure:** This command must be ran in a guild.")
         val user = event.author.toMember(guild) ?: return@precondition Fail("**Failure:** Only users can type commands.")
 
-        val command = event.container.commands[event.commandStruct.commandName] ?: return@precondition Pass
+        val command = event.container[event.commandStruct.commandName] ?: return@precondition Pass
+
+        val guildConfig = config.guildConfigurations[guild.id] ?: return@precondition Pass
+        val textChannel = guild.getTextChannelById(guildConfig.loggingChannelID) ?: return@precondition Pass
 
         when (command.category) {
-            Constants.UTILITY_CATEGORY -> return@precondition Pass //No need to log these commands
+            Constants.UTILITY_CATEGORY -> {
+                if (guildConfig.reactToCommands) event.message.addReaction(guildConfig.reactionEmoji).queue()
+
+                return@precondition Pass
+            }
 
             Constants.MANAGEMENT_CATEGORY -> {
+                if (guildConfig.reactToCommands) event.message.addReaction(guildConfig.reactionEmoji).queue()
+
                 if (!user.isOwner) return@precondition Fail("Only the owner can type these commands.")
 
                 return@precondition Pass //No need to log these commands
             }
 
             Constants.MODERATION_CATEGORY -> {
+                if (guildConfig.reactToCommands) event.message.addReaction(guildConfig.reactionEmoji).queue()
+
                 val staffRole = config.guildConfigurations[guild.id]?.staffRole
                 val isStaff = user.roles.any { staff -> staff.id == staffRole }
 
                 if (!isStaff) return@precondition Fail("Only staff can type these commands.")
             }
         }
-
-        val guildConfig = config.guildConfigurations[guild.id] ?: return@precondition Pass
-        val textChannel = guild.getTextChannelById(guildConfig.loggingChannelID) ?: return@precondition Pass
 
         val argList = buildString {
             event.commandStruct.commandArgs.forEach { arg ->

@@ -12,4 +12,6 @@ data class GuildInfo(var staffRole: String = "",
                      var playlistQueueLimit: Int = 0,
                      var songMaxDuration: Long = 0,
                      var songQueueLimit: Int = 0,
+                     var reactToCommands: Boolean = true,
+                     var reactionEmoji: String = "\uD83C\uDFB5",
                      var ignoreList: MutableList<String> = mutableListOf())
